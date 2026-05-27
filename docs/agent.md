@@ -1,0 +1,154 @@
+# Agent Design
+
+## Agent type
+
+The project uses a bounded tool-calling agent.
+
+The agent is not fully autonomous. It operates under strict policy constraints and is not allowed to replace deterministic compliance logic.
+
+## Agent responsibility
+
+The agent is responsible for choosing additional checks when deterministic matching is insufficient or incomplete.
+
+The agent may:
+
+- request entity extraction;
+- request context windows;
+- request alias search;
+- request fuzzy search;
+- request disambiguation;
+- request label checking;
+- request risk scoring;
+- request final report generation.
+
+The agent must not:
+
+- browse the web;
+- change the registry source;
+- invent registry entities;
+- ignore mandatory recall checks;
+- produce a legal verdict;
+- finalize the report before policy allows it.
+
+## Agent state
+
+The agent receives structured state.
+
+Example:
+
+```json
+{
+  "article_loaded": true,
+  "article_extracted": true,
+  "registry_loaded": true,
+  "candidate_generation_completed": true,
+  "exact_matches_count": 0,
+  "weak_candidates_count": 2,
+  "entities_extracted": false,
+  "recall_pass_completed": false,
+  "disambiguation_completed": false,
+  "label_check_completed": false,
+  "risk_scored": false,
+  "ready_to_report": false,
+  "tool_call_count": 0
+}
+```
+
+# Available tools
+get_context_window
+
+Returns text around a mention.
+
+## alias_search
+
+Searches aliases for one mention.
+
+## alias_search_batch
+
+Searches aliases for multiple extracted entities.
+
+## fuzzy_registry_search
+
+Searches registry entries with fuzzy matching.
+
+## entity_extractor
+
+Extracts persons, organizations, media projects, domains, and suspicious mentions from article text.
+
+May use LLM.
+
+## disambiguate_entity
+
+Determines whether a weak mention and registry candidate refer to the same entity.
+
+Uses LLM and must return structured output.
+
+## label_checker
+
+Checks whether a foreign-agent label appears near the mention or elsewhere in the article.
+
+## author_checker
+
+Checks article author against registry.
+
+## link_domain_checker
+
+Checks article links and domains against known context profile domains.
+
+## risk_scorer
+
+Computes deterministic final risk level.
+
+## report_generator
+
+Generates Markdown and JSON reports from structured findings.
+
+## Tool-call loop
+
+The orchestrator runs a bounded loop:
+
+```python
+while not ready_to_report and step_count < max_steps:
+    agent observes state
+    agent returns structured action
+    orchestrator validates action
+    orchestrator executes tool
+    orchestrator updates state
+```
+
+## Mandatory gates
+
+The report cannot be finalized until:
+
+1. candidate generation is completed;
+2. recall pass is completed;
+3. all weak candidates are disambiguated or marked for human review;
+4. labels are checked for confirmed/probable findings;
+5. risk scoring is completed.
+
+## Policy violations
+
+If the agent attempts to finalize too early, call an unavailable tool, or exceed max tool calls, the orchestrator must reject the action and either:
+
+ask the agent for a valid next action;
+or mark the report as requiring human review.
+
+## Prompting principles
+
+The LLM prompt must:
+
+emphasize source-of-truth boundaries;
+require structured JSON output;
+prohibit legal conclusions;
+require uncertainty escalation;
+require short rationales grounded in evidence.
+
+## Model assumptions
+
+The initial local model is expected to run through Ollama.
+
+Default model:
+
+qwen2.5:14b-instruct
+
+Model choice must be configurable via environment variable.

@@ -1,0 +1,48 @@
+[project]
+name = "fa-checker"
+version = "0.1.0"
+description = "Bounded tool-calling agent for checking Rambler articles against the Russian foreign-agent registry"
+authors = [
+    {name = "Igor Lokisov"}
+]
+license = {text = "MIT"}
+requires-python = "^3.11"
+dependencies = [
+    "httpx (>=0.28.1,<0.29.0)",
+    "beautifulsoup4 (>=4.14.3,<5.0.0)",
+    "trafilatura (>=2.0.0,<3.0.0)",
+    "pydantic (>=2.13.4,<3.0.0)",
+    "pydantic-settings (>=2.14.1,<3.0.0)",
+    "typer (>=0.26.2,<0.27.0)",
+    "rich (>=15.0.0,<16.0.0)",
+    "rapidfuzz (>=3.14.5,<4.0.0)",
+    "openpyxl (>=3.1.5,<4.0.0)",
+    "python-dotenv (>=1.2.2,<2.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest (>=9.0.3,<10.0.0)",
+    "ruff (>=0.15.14,<0.16.0)"
+]
+
+[tool.poetry.scripts]
+fa-checker = "fa_checker.cli:app"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

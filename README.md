@@ -1,0 +1,80 @@
+# Foreign Agent Checker
+
+A bounded tool-calling agent for checking Rambler articles against the official Russian Ministry of Justice foreign-agent registry.
+
+## Purpose
+
+The tool accepts a Rambler article URL, extracts article text and metadata, checks the article against the official registry, and produces a short evidence-based report.
+
+The system is designed for compliance assistance and human review. It does not provide legal conclusions.
+
+## MVP capabilities
+
+- CLI input for Rambler article URL
+- article loading and text extraction
+- registry loading and local snapshot parsing
+- exact, alias, and fuzzy matching
+- bounded LLM-agent review through local Ollama
+- weak candidate disambiguation
+- label checking
+- deterministic risk scoring
+- Markdown and JSON report output
+
+## Architecture
+
+The project uses a bounded semi-agentic architecture:
+
+
+deterministic pipeline
+→ structured agent state
+→ bounded tool-calling loop
+→ deterministic risk scoring
+→ report generation
+
+See:
+
+docs/architecture.md
+docs/contracts.md
+docs/agent.md
+
+
+## Installation
+```bash
+poetry install
+```
+
+Environment
+
+Copy example env file:
+```bash
+cp .env.example .env
+```
+
+Expected local Ollama server:
+```bash
+ollama serve
+```
+
+Default model:
+```bash
+qwen2.5:14b-instruct
+```
+
+## Run
+```bash
+poetry run fa-checker
+```
+or:
+```bash
+make run
+```
+
+## Test
+```bash
+make test
+make lint
+```
+
+## Important limitation
+
+The system does not issue a legal verdict. It produces evidence-based findings and highlights cases requiring human review.
