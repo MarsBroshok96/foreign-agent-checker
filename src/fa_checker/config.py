@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     fa_checker_log_level: str = "INFO"
     fa_checker_max_agent_steps: int = Field(default=8, ge=1)
     minjust_registry_url: str = "https://minjust.gov.ru/ru/pages/reestr-inostryannykh-agentov/"
+    registry_cache_dir: str = "data/registry"
+    registry_cache_ttl_hours: int = Field(default=24, ge=0)
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -25,4 +27,3 @@ class Settings(BaseSettings):
 
 def get_settings() -> Settings:
     return Settings()
-
