@@ -30,6 +30,23 @@ def test_person_full_name_aliases() -> None:
     assert "варламов" not in aliases.strong
 
 
+def test_person_initial_aliases_are_weak_and_dotted() -> None:
+    aliases = build_aliases(
+        make_entry("Варламов Илья Александрович", EntityType.PERSON)
+    )
+
+    assert "варламов и." in aliases.weak
+    assert "и. варламов" in aliases.weak
+    assert "варламов и.а." in aliases.weak
+    assert "варламов и. а." in aliases.weak
+    assert "и.а. варламов" in aliases.weak
+    assert "и. а. варламов" in aliases.weak
+    assert "варламов и" not in aliases.weak
+    assert "варламов и а" not in aliases.weak
+    assert "и варламов" not in aliases.weak
+    assert "варламов и." not in aliases.strong
+
+
 def test_person_explicit_aliases_are_normalized_and_included() -> None:
     aliases = build_aliases(
         make_entry(
@@ -59,4 +76,3 @@ def test_short_organization_aliases_are_weak() -> None:
     assert "рб" in aliases.weak
     assert "тв" not in aliases.strong
     assert "рб" not in aliases.strong
-

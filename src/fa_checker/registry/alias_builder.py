@@ -20,6 +20,10 @@ def _add_unique_raw(items: list[str], value: str) -> None:
         items.append(value)
 
 
+def _add_unique_normalized(items: list[str], value: str) -> None:
+    _add_unique_raw(items, normalize_for_matching(value))
+
+
 def _simplify_legal_name(normalized_name: str) -> str:
     tokens = normalized_name.split()
     if len(tokens) < 2 or tokens[0] not in LEGAL_PREFIXES:
@@ -51,8 +55,25 @@ def _build_person_aliases(entry: RegistryEntry) -> AliasSet:
         _add_unique_raw(strong, f"{tokens[0]} {tokens[1]} {tokens[2]}")
     if len(surname) >= 4 and surname not in strong:
         _add_unique_raw(weak, surname)
+    if len(tokens) >= 2:
+        _add_person_initial_aliases(weak, tokens)
 
     return AliasSet(strong=strong, weak=weak)
+
+
+def _add_person_initial_aliases(weak: list[str], tokens: list[str]) -> None:
+    surname = tokens[0]
+    name_initial = tokens[1][0]
+
+    _add_unique_normalized(weak, f"{surname} {name_initial}.")
+    _add_unique_normalized(weak, f"{name_initial}. {surname}")
+
+    if len(tokens) >= 3:
+        patronymic_initial = tokens[2][0]
+        _add_unique_normalized(weak, f"{surname} {name_initial}.{patronymic_initial}.")
+        _add_unique_normalized(weak, f"{surname} {name_initial}. {patronymic_initial}.")
+        _add_unique_normalized(weak, f"{name_initial}.{patronymic_initial}. {surname}")
+        _add_unique_normalized(weak, f"{name_initial}. {patronymic_initial}. {surname}")
 
 
 def _build_non_person_aliases(entry: RegistryEntry) -> AliasSet:
