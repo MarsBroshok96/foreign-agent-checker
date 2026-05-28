@@ -27,6 +27,7 @@ runs/*
 # Registry/cache data
 data/registry/*
 !data/registry/.gitkeep
+data/samples/*
 
 # OS / IDE
 .DS_Store
