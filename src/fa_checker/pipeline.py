@@ -2,6 +2,7 @@
 
 from datetime import UTC, date, datetime
 
+from fa_checker.agent.context_profiles import ContextProfile
 from fa_checker.agent.state import DeterministicAnalysisResult
 from fa_checker.domain.enums import FindingStatus, ReportStatus
 from fa_checker.domain.models import Article, CheckReport, FinalFinding, RegistryEntry
@@ -22,13 +23,14 @@ def run_deterministic_analysis(
 ) -> DeterministicAnalysisResult:
     """Run mandatory deterministic checks and return structured analysis state."""
     candidates = find_exact_matches(article, registry_entries)
+    label_results = [check_label(article, candidate) for candidate in candidates]
     scoring_inputs = [
         ScoringInput(
             match=candidate,
-            label_result=check_label(article, candidate),
+            label_result=label_result,
             disambiguation=None,
         )
-        for candidate in candidates
+        for candidate, label_result in zip(candidates, label_results, strict=True)
     ]
     findings = score_candidate_matches(scoring_inputs)
     registry_snapshot_date = _get_registry_snapshot_date(registry_entries)
@@ -42,6 +44,7 @@ def run_deterministic_analysis(
         article=article,
         registry_snapshot_date=registry_snapshot_date,
         candidates=candidates,
+        label_results=label_results,
         findings=findings,
         base_report=base_report,
         strong_candidates_count=sum(
@@ -62,6 +65,21 @@ def run_deterministic_analysis(
 def run_offline_check(article: Article, registry_entries: list[RegistryEntry]) -> CheckReport:
     """Run deterministic offline matching, label checking, and scoring."""
     return run_deterministic_analysis(article, registry_entries).base_report
+
+
+def run_agentic_review_check(
+    article: Article,
+    registry_entries: list[RegistryEntry],
+    context_profiles: list[ContextProfile] | None = None,
+) -> CheckReport:
+    """Run deterministic baseline plus bounded weak-candidate review."""
+    from fa_checker.agent.orchestrator import run_bounded_review_check
+
+    return run_bounded_review_check(
+        article,
+        registry_entries,
+        context_profiles=context_profiles,
+    )
 
 
 def _build_check_report(

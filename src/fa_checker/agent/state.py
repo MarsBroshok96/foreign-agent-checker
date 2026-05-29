@@ -9,6 +9,7 @@ from fa_checker.domain.models import (
     CandidateMatch,
     CheckReport,
     FinalFinding,
+    LabelCheckResult,
 )
 
 
@@ -16,6 +17,7 @@ class DeterministicAnalysisResult(BaseModel):
     article: Article
     registry_snapshot_date: date | None = None
     candidates: list[CandidateMatch] = Field(default_factory=list)
+    label_results: list[LabelCheckResult] = Field(default_factory=list)
     findings: list[FinalFinding] = Field(default_factory=list)
     base_report: CheckReport
     strong_candidates_count: int = Field(ge=0)

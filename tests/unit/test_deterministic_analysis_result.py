@@ -32,6 +32,7 @@ def test_deterministic_analysis_no_matches() -> None:
     )
 
     assert analysis.candidates == []
+    assert analysis.label_results == []
     assert analysis.findings == []
     assert analysis.strong_candidates_count == 0
     assert analysis.weak_candidates_count == 0
@@ -46,6 +47,7 @@ def test_deterministic_analysis_strong_exact_match() -> None:
     )
 
     assert len(analysis.candidates) == 1
+    assert len(analysis.label_results) == 1
     assert analysis.strong_candidates_count == 1
     assert analysis.weak_candidates_count == 0
     assert analysis.confirmed_findings_count == 1
@@ -76,4 +78,3 @@ def test_run_offline_check_delegates_to_deterministic_analysis_report() -> None:
 
     assert report.status == analysis.base_report.status
     assert len(report.findings) == len(analysis.base_report.findings)
-
