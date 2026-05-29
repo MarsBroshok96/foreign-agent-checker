@@ -11,10 +11,12 @@ from fa_checker.adapters.minjust_registry_client import (
     RegistryDownloadError,
     load_minjust_registry_entries,
 )
+from fa_checker.adapters.ollama_client import OllamaClientError
 from fa_checker.adapters.rambler_loader import load_rambler_article
+from fa_checker.agent.context_profiles import load_context_profiles
 from fa_checker.article.extractor import ArticleExtractionError
 from fa_checker.config import get_settings
-from fa_checker.pipeline import run_offline_check
+from fa_checker.pipeline import run_agentic_review_check, run_offline_check
 from fa_checker.registry.repository import load_registry_from_xlsx
 from fa_checker.reporting.json_report import report_to_json
 from fa_checker.reporting.markdown_report import report_to_markdown
@@ -30,6 +32,13 @@ status_console = Console(stderr=True)
 @app.command()
 def main(
     url: Annotated[str | None, typer.Argument(help="Rambler article URL to check.")] = None,
+    mode: Annotated[
+        str,
+        typer.Option(
+            "--mode",
+            help="Check mode: deterministic or agentic.",
+        ),
+    ] = "deterministic",
     output_format: Annotated[
         str,
         typer.Option(
@@ -65,8 +74,18 @@ def main(
             help="Registry cache time-to-live in hours.",
         ),
     ] = None,
+    context_profiles_path: Annotated[
+        Path,
+        typer.Option(
+            "--context-profiles-path",
+            help="Path to local context profiles JSON for agentic mode.",
+        ),
+    ] = Path("data/context/context_profiles.example.json"),
 ) -> None:
-    """Run deterministic article check and render a report."""
+    """Run article check and render a report."""
+    if mode not in {"deterministic", "agentic"}:
+        status_console.print("[red]Error:[/red] --mode must be 'deterministic' or 'agentic'.")
+        raise typer.Exit(1)
     if output_format not in {"markdown", "json"}:
         status_console.print("[red]Error:[/red] --output-format must be 'markdown' or 'json'.")
         raise typer.Exit(1)
@@ -96,8 +115,18 @@ def main(
                 force_refresh=force_refresh_registry,
             )
 
-        status_console.print("[cyan]Running deterministic check...[/cyan]")
-        report = run_offline_check(article, registry_entries)
+        if mode == "agentic":
+            status_console.print("[cyan]Loading context profiles...[/cyan]")
+            context_profiles = load_context_profiles(context_profiles_path)
+            status_console.print("[cyan]Running bounded agentic review...[/cyan]")
+            report = run_agentic_review_check(
+                article,
+                registry_entries,
+                context_profiles=context_profiles,
+            )
+        else:
+            status_console.print("[cyan]Running deterministic check...[/cyan]")
+            report = run_offline_check(article, registry_entries)
 
         status_console.print("[cyan]Rendering report...[/cyan]")
         rendered = (
@@ -111,6 +140,7 @@ def main(
         HttpFetchError,
         ArticleExtractionError,
         RegistryDownloadError,
+        OllamaClientError,
         OSError,
     ) as exc:
         status_console.print(f"[red]Error:[/red] {exc}")

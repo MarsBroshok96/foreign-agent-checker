@@ -69,6 +69,27 @@ or:
 make run
 ```
 
+## CLI modes
+
+Deterministic mode is the default. It does not call an LLM. It loads the
+Rambler article and registry, then runs exact/alias matching, label checking,
+and deterministic risk scoring.
+
+```bash
+poetry run fa-checker "URL" --mode deterministic
+```
+
+Agentic mode runs the deterministic baseline first, then reviews only weak
+candidates with bounded local Ollama disambiguation. It may use local context
+profiles as auxiliary data, does not browse the internet, and final risk remains
+deterministic.
+
+```bash
+poetry run fa-checker "URL" --mode agentic
+poetry run fa-checker "URL" --mode agentic --context-profiles-path data/context/context_profiles.example.json
+poetry run fa-checker "URL" --registry-path data/samples/registries/minjust_export_sample.xlsx
+```
+
 ## Test
 ```bash
 make test

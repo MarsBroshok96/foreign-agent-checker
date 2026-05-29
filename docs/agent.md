@@ -80,6 +80,17 @@ registry. The source of truth remains the Ministry of Justice registry.
 The runtime agent does not browse the internet. Future profile enrichment may be
 performed offline by a developer or Codex workflow, then reviewed before use.
 
+## Bounded review mode
+
+Agentic CLI mode still runs the deterministic layer first. The bounded review
+orchestrator reviews only weak candidates that require disambiguation; strong
+deterministic findings are not sent to the LLM by default.
+
+The LLM may only help decide whether a weak article mention refers to the
+registry candidate. Local context profiles are auxiliary support data, not a
+source of foreign-agent status. Ollama failures or invalid model output degrade
+to uncertain findings that require human review.
+
 # Available tools
 get_context_window
 

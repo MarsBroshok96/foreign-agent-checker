@@ -7,7 +7,7 @@ def test_cli_help_works() -> None:
     result = CliRunner().invoke(app, ["--help"])
 
     assert result.exit_code == 0
-    assert "Run deterministic article check" in result.output
+    assert "Run article check" in result.output
 
 
 def test_cli_rejects_invalid_output_format() -> None:
