@@ -54,6 +54,22 @@ Example:
 }
 ```
 
+## Deterministic-first boundary
+
+The deterministic layer always runs before any LLM review. It loads the already
+available Article and RegistryEntry objects into mandatory exact matching, label
+checking, and base risk scoring. The LLM agent must not decide whether these
+checks run.
+
+The future review layer receives a structured DeterministicAnalysisResult and
+focuses first on weak candidate disambiguation. Strong confirmed findings do not
+require agent review by default.
+
+Context profile lookup will be deterministic support data in a later step. The
+runtime agent must not browse the internet. Any broader context profile
+enrichment should be performed offline by a developer workflow, not by the
+bounded runtime agent.
+
 # Available tools
 get_context_window
 

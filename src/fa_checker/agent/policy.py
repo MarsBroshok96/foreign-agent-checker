@@ -1,6 +1,6 @@
 """Policy checks for bounded agent actions."""
 
-from fa_checker.agent.state import AgentState
+from fa_checker.agent.state import AgentReviewState, AgentState, DeterministicAnalysisResult
 from fa_checker.domain.enums import AgentActionType
 from fa_checker.domain.models import AgentAction
 
@@ -28,3 +28,29 @@ def is_action_allowed(action: AgentAction, state: AgentState, max_steps: int) ->
         return state.ready_to_report
     return action.action_type == AgentActionType.REQUEST_HUMAN_REVIEW
 
+
+def agent_review_required(analysis: DeterministicAnalysisResult) -> bool:
+    return analysis.requires_agent_review
+
+
+def allowed_review_actions(state: AgentReviewState) -> list[str]:
+    actions: list[str] = []
+    if state.review_candidates and not state.weak_candidates_reviewed:
+        actions.extend(
+            [
+                "request_context",
+                "disambiguate_candidate",
+                "request_human_review",
+            ]
+        )
+    if can_finalize_review(state):
+        actions.append("finalize")
+    return actions
+
+
+def can_finalize_review(state: AgentReviewState) -> bool:
+    return (
+        not state.review_candidates
+        or state.weak_candidates_reviewed
+        or state.disambiguation_completed
+    )
