@@ -1,0 +1,37 @@
+{
+  "profiles": [
+    {
+      "registry_id": "560",
+      "entity_name": "Варламов Илья Александрович",
+      "entity_type": "person",
+      "descriptors": ["блогер", "урбанист", "журналист"],
+      "known_projects": ["varlamov.ru"],
+      "known_domains": ["varlamov.ru"],
+      "common_mentions": ["Илья Варламов", "Варламов"],
+      "notes": "Auxiliary context for disambiguation only.",
+      "sources": []
+    },
+    {
+      "registry_id": "1208",
+      "entity_name": "Проект «После»",
+      "entity_type": "project",
+      "descriptors": ["медиа-проект"],
+      "known_projects": ["После"],
+      "known_domains": ["posle.media"],
+      "common_mentions": ["После"],
+      "notes": "Auxiliary context for disambiguation only.",
+      "sources": []
+    },
+    {
+      "registry_id": null,
+      "entity_name": "Белый Руслан Викторович",
+      "entity_type": "person",
+      "descriptors": ["актер"],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": ["Руслан Белый", "Белый"],
+      "notes": "Auxiliary context for disambiguation only.",
+      "sources": []
+    }
+  ]
+}

@@ -70,6 +70,16 @@ runtime agent must not browse the internet. Any broader context profile
 enrichment should be performed offline by a developer workflow, not by the
 bounded runtime agent.
 
+## Context Profiles
+
+Context profiles are local auxiliary JSON data for disambiguation. They may
+contain descriptors, known projects, domains, and common mention forms, but they
+do not determine foreign-agent status and must not override the official
+registry. The source of truth remains the Ministry of Justice registry.
+
+The runtime agent does not browse the internet. Future profile enrichment may be
+performed offline by a developer or Codex workflow, then reviewed before use.
+
 # Available tools
 get_context_window
 
