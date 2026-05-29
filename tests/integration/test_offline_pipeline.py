@@ -1,6 +1,7 @@
 from datetime import date
 
 from fa_checker.domain.enums import (
+    ConfidenceLevel,
     EntityType,
     FindingStatus,
     LabelStatus,
@@ -89,6 +90,21 @@ def test_run_offline_check_scores_weak_surname_only_match_as_potential() -> None
     assert len(report.findings) == 1
     assert report.findings[0].status == FindingStatus.UNCERTAIN
     assert report.findings[0].requires_human_review is True
+
+
+def test_run_offline_check_keeps_one_token_project_alias_as_weak_potential() -> None:
+    report = run_offline_check(
+        make_article("После дождя случилось событие."),
+        [make_entry("Проект «После»", entity_type=EntityType.PROJECT, aliases=["После"])],
+    )
+
+    assert report.status == ReportStatus.POTENTIAL_MATCH_FOUND
+    assert len(report.findings) == 1
+    finding = report.findings[0]
+    assert finding.status == FindingStatus.UNCERTAIN
+    assert finding.risk_level == RiskLevel.MEDIUM
+    assert finding.confidence_level == ConfidenceLevel.LOW
+    assert finding.requires_human_review is True
 
 
 def test_run_offline_check_handles_multiple_findings() -> None:

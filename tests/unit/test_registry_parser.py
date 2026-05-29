@@ -122,6 +122,7 @@ def test_parse_registry_xlsx_official_like_layout(tmp_path) -> None:
     assert len(entries) == 4
     by_id = {entry.registry_id: entry for entry in entries}
     assert by_id["1208"].aliases == ["После"]
+    assert by_id["1208"].raw_fields["quoted_aliases"] == ["После"]
     assert by_id["1208"].entity_type == EntityType.PROJECT
     assert by_id["1208"].registry_snapshot_date == date(2026, 5, 22)
     assert by_id["1208"].raw_fields["resource_urls"] == [
@@ -134,6 +135,7 @@ def test_parse_registry_xlsx_official_like_layout(tmp_path) -> None:
     assert by_id["560"].entity_type == EntityType.PERSON
     assert by_id["560"].raw_fields["resource_domains"] == ["varlamov.ru"]
     assert by_id["728"].aliases == ["Телеканал Дождь"]
+    assert by_id["728"].raw_fields["quoted_aliases"] == ["Телеканал Дождь"]
 
 
 def test_parse_registry_xlsx_supports_russian_simple_headers(tmp_path) -> None:
@@ -216,6 +218,24 @@ def test_parse_registry_xlsx_deduplicates_quoted_aliases_with_explicit_aliases(t
     entries = parse_registry_xlsx(path, SOURCE_URL)
 
     assert entries[0].aliases == ["После", "Другое"]
+    assert entries[0].raw_fields["explicit_aliases"] == ["После", "Другое"]
+    assert entries[0].raw_fields["quoted_aliases"] == ["После"]
+
+
+def test_parse_registry_xlsx_stores_explicit_aliases_traceably(tmp_path) -> None:
+    path = tmp_path / "explicit_aliases.xlsx"
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.append(["registry_id", "full_name", "entity_type", "aliases"])
+    sheet.append(
+        ["1", "Варламов Илья Александрович", "person", "Илья Варламов; Варламов"]
+    )
+    save_workbook(workbook, path)
+
+    entries = parse_registry_xlsx(path, SOURCE_URL)
+
+    assert entries[0].aliases == ["Илья Варламов", "Варламов"]
+    assert entries[0].raw_fields["explicit_aliases"] == ["Илья Варламов", "Варламов"]
 
 
 def test_parse_registry_xlsx_entries_feed_exact_matcher(tmp_path) -> None:
@@ -237,4 +257,3 @@ def test_parse_registry_xlsx_entries_feed_exact_matcher(tmp_path) -> None:
     assert len(matches) == 1
     assert matches[0].match_type == MatchType.EXACT
     assert matches[0].requires_disambiguation is False
-

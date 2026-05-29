@@ -103,6 +103,36 @@ def test_exact_matcher_does_not_match_alias_inside_larger_word() -> None:
     assert find_exact_matches(article, [entry]) == []
 
 
+def test_exact_matcher_treats_project_one_token_alias_as_weak() -> None:
+    article = make_article("После дождя случилось событие.")
+    entry = make_entry("Проект «После»", entity_type=EntityType.PROJECT, aliases=["После"])
+
+    matches = find_exact_matches(article, [entry])
+
+    assert len(matches) == 1
+    assert matches[0].mention_text == "после"
+    assert matches[0].match_type == MatchType.ALIAS
+    assert matches[0].match_score == 0.55
+    assert matches[0].requires_disambiguation is True
+
+
+def test_exact_matcher_treats_person_one_token_pseudonym_as_weak() -> None:
+    article = make_article("Белый дом выступил с заявлением.")
+    entry = make_entry(
+        'Вайсман Анатолий Александрович "Белый"',
+        entity_type=EntityType.PERSON,
+        aliases=["Белый"],
+    )
+
+    matches = find_exact_matches(article, [entry])
+
+    assert len(matches) == 1
+    assert matches[0].mention_text == "белый"
+    assert matches[0].match_type == MatchType.ALIAS
+    assert matches[0].match_score == 0.55
+    assert matches[0].requires_disambiguation is True
+
+
 def test_exact_matcher_returns_empty_list_when_no_aliases_found() -> None:
     article = make_article("В тексте нет нужных имен.")
 

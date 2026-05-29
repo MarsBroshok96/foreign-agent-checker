@@ -64,7 +64,8 @@ def test_organization_legal_prefix_simplification() -> None:
     aliases = build_aliases(make_entry("ООО Ромашка", EntityType.ORGANIZATION))
 
     assert "ооо ромашка" in aliases.strong
-    assert "ромашка" in aliases.strong
+    assert "ромашка" in aliases.weak
+    assert "ромашка" not in aliases.strong
 
 
 def test_short_organization_aliases_are_weak() -> None:
@@ -76,3 +77,37 @@ def test_short_organization_aliases_are_weak() -> None:
     assert "рб" in aliases.weak
     assert "тв" not in aliases.strong
     assert "рб" not in aliases.strong
+
+
+def test_project_quoted_one_token_alias_is_weak() -> None:
+    aliases = build_aliases(
+        make_entry("Проект «После»", EntityType.PROJECT, aliases=["После"])
+    )
+
+    assert "проект после" in aliases.strong
+    assert "после" in aliases.weak
+    assert "после" not in aliases.strong
+
+
+def test_person_quoted_one_token_pseudonym_is_weak() -> None:
+    aliases = build_aliases(
+        make_entry(
+            'Вайсман Анатолий Александрович "Белый"',
+            EntityType.PERSON,
+            aliases=["Белый"],
+        )
+    )
+
+    assert "вайсман анатолий александрович" in aliases.strong
+    assert "вайсман анатолий" in aliases.strong
+    assert "анатолий вайсман" in aliases.strong
+    assert "вайсман" in aliases.weak
+    assert "вайсман а." in aliases.weak
+    assert "а. вайсман" in aliases.weak
+    assert "вайсман а.а." in aliases.weak
+    assert "вайсман а. а." in aliases.weak
+    assert "а.а. вайсман" in aliases.weak
+    assert "а. а. вайсман" in aliases.weak
+    assert "белый" in aliases.weak
+    assert "белый" not in aliases.strong
+    assert "вайсман анатолий александрович белый" not in aliases.strong

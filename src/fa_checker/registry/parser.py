@@ -66,7 +66,15 @@ def parse_registry_xlsx(
         raw_registry_id = raw_row.get("registry_id")
         registry_id = _string_or_none(raw_registry_id)
         resource_urls = _split_resource_urls(raw_row.get("resource_urls"))
-        raw_fields = _build_raw_fields(raw_row, resource_urls)
+        explicit_aliases = _split_aliases(raw_row.get("aliases"))
+        quoted_aliases = _extract_quoted_aliases(full_name)
+        aliases = _collect_aliases(explicit_aliases, quoted_aliases)
+        raw_fields = _build_raw_fields(
+            raw_row,
+            resource_urls,
+            explicit_aliases,
+            quoted_aliases,
+        )
 
         entries.append(
             RegistryEntry(
@@ -74,7 +82,7 @@ def parse_registry_xlsx(
                 full_name=full_name,
                 entity_type=_map_entity_type(raw_row.get("entity_type")),
                 normalized_name=normalize_for_matching(full_name),
-                aliases=_collect_aliases(raw_row.get("aliases"), full_name),
+                aliases=aliases,
                 registry_source_url=registry_source_url,
                 registry_snapshot_date=resolved_snapshot_date,
                 raw_fields=raw_fields,
@@ -185,20 +193,27 @@ def _read_raw_row(row: tuple[Any, ...], columns: dict[str, int]) -> dict[str, An
     }
 
 
-def _build_raw_fields(raw_row: dict[str, Any], resource_urls: list[str]) -> dict[str, Any]:
+def _build_raw_fields(
+    raw_row: dict[str, Any],
+    resource_urls: list[str],
+    explicit_aliases: list[str],
+    quoted_aliases: list[str],
+) -> dict[str, Any]:
     raw_fields = {field: raw_row.get(field) for field in CANONICAL_FIELDS}
     raw_fields["resource_urls"] = resource_urls
     raw_fields["resource_domains"] = _extract_resource_domains(resource_urls)
     raw_fields["participants"] = raw_row.get("participants")
+    raw_fields["explicit_aliases"] = explicit_aliases
+    raw_fields["quoted_aliases"] = quoted_aliases
     raw_fields["raw_row"] = dict(raw_row)
     return raw_fields
 
 
-def _collect_aliases(raw_aliases: Any, full_name: str) -> list[str]:
+def _collect_aliases(explicit_aliases: list[str], quoted_aliases: list[str]) -> list[str]:
     aliases: list[str] = []
-    for alias in _split_aliases(raw_aliases):
+    for alias in explicit_aliases:
         _add_unique(aliases, alias)
-    for alias in _extract_quoted_aliases(full_name):
+    for alias in quoted_aliases:
         _add_unique(aliases, alias)
     return aliases
 
