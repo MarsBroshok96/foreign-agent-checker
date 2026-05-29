@@ -2,10 +2,17 @@
 
 from datetime import UTC, datetime
 
+from fa_checker.agent.action_selection import choose_review_action_with_llm
 from fa_checker.agent.context_profiles import ContextProfile
 from fa_checker.agent.disambiguation import disambiguate_candidate
+from fa_checker.agent.policy import allowed_actions_for_candidate, normalize_or_repair_action
+from fa_checker.agent.schemas import AgentReviewAction
 from fa_checker.agent.state import AgentReviewState, AgentState, build_agent_review_state
-from fa_checker.agent.tools import get_candidate_context, lookup_candidate_context_profile
+from fa_checker.agent.tools import (
+    MAX_CONTEXT_REQUESTS_PER_CANDIDATE,
+    get_candidate_context,
+    lookup_candidate_context_profile,
+)
 from fa_checker.domain.enums import (
     DisambiguationDecision,
     FindingStatus,
@@ -36,6 +43,7 @@ def run_bounded_review_check(
     registry_entries: list[RegistryEntry],
     context_profiles: list[ContextProfile] | None = None,
     max_review_candidates: int = 20,
+    max_steps_per_candidate: int = 5,
 ) -> CheckReport:
     """Run deterministic baseline and bounded LLM review for weak candidates."""
     analysis = run_deterministic_analysis(article, registry_entries)
@@ -55,29 +63,14 @@ def run_bounded_review_check(
 
     for review_candidate in review_candidates:
         candidate_index = review_candidate.candidate_index
-        context_text = _request_context_or_fallback(state, candidate_index, "small", limitations)
         profile = lookup_candidate_context_profile(state, candidate_index, profiles)
-        result = disambiguate_candidate(
-            state,
-            candidate_index=candidate_index,
-            context_text=context_text,
+        result = _run_candidate_action_loop(
+            state=state,
+            review_candidate=review_candidate,
             context_profile=profile,
+            max_steps=max_steps_per_candidate,
+            limitations=limitations,
         )
-
-        if result.decision == DisambiguationDecision.UNCERTAIN:
-            context_text = _request_context_or_fallback(
-                state,
-                candidate_index,
-                "large",
-                limitations,
-            )
-            result = disambiguate_candidate(
-                state,
-                candidate_index=candidate_index,
-                context_text=context_text,
-                context_profile=profile,
-            )
-
         disambiguation_by_candidate[candidate_index] = result
 
     state.weak_candidates_reviewed = True
@@ -137,6 +130,140 @@ def _request_context_or_fallback(
         )
         state.history.append(str(exc))
     return _get_best_candidate_context(state, candidate_index)
+
+
+def _run_candidate_action_loop(
+    state: AgentReviewState,
+    review_candidate,
+    context_profile: ContextProfile | None,
+    max_steps: int,
+    limitations: list[str],
+) -> DisambiguationResult:
+    candidate_index = review_candidate.candidate_index
+    available_context_texts: list[str] = []
+    disambiguation_result: DisambiguationResult | None = None
+    human_review_requested = False
+
+    for _ in range(max(0, max_steps)):
+        has_context = bool(available_context_texts)
+        context_request_count = state.context_requests_made.get(str(candidate_index), 0)
+        allowed_actions = allowed_actions_for_candidate(
+            state,
+            candidate_index=candidate_index,
+            has_context=has_context,
+            disambiguation_done=disambiguation_result is not None,
+            human_review_requested=human_review_requested,
+        )
+        selected_action = choose_review_action_with_llm(
+            state=state,
+            candidate=review_candidate,
+            available_context_texts=available_context_texts,
+            context_profile=context_profile,
+            allowed_actions=allowed_actions,
+        )
+        state.history.append(
+            f"LLM requested action {selected_action.action_type} "
+            f"for candidate {candidate_index}."
+        )
+        action = normalize_or_repair_action(
+            selected_action,
+            allowed_actions=allowed_actions,
+            has_context=has_context,
+            context_request_count=context_request_count,
+            max_context_requests=MAX_CONTEXT_REQUESTS_PER_CANDIDATE,
+        )
+        if action != selected_action:
+            state.history.append(
+                f"Action repaired from {selected_action.action_type} to "
+                f"{action.action_type} for candidate {candidate_index}: {action.reason}"
+            )
+
+        if not _is_valid_action(action, candidate_index, allowed_actions):
+            limitations.append(
+                f"Invalid review action for candidate {candidate_index}; "
+                "human review required."
+            )
+            state.history.append(f"Invalid review action for candidate {candidate_index}.")
+            return _conservative_disambiguation(
+                "LLM action selection failed; human review required."
+            )
+
+        if action.action_type == "request_context":
+            context_text = _request_context_or_fallback(
+                state,
+                candidate_index,
+                action.context_window_size or "small",
+                limitations,
+            )
+            if context_text not in available_context_texts:
+                available_context_texts.append(context_text)
+            continue
+
+        if action.action_type == "disambiguate_candidate":
+            context_text = (
+                available_context_texts[-1]
+                if available_context_texts
+                else _get_best_candidate_context(state, candidate_index)
+            )
+            disambiguation_result = disambiguate_candidate(
+                state,
+                candidate_index=candidate_index,
+                context_text=context_text,
+                context_profile=context_profile,
+            )
+            state.history.append(
+                "Candidate "
+                f"{candidate_index} review ended with disambiguation decision "
+                f"{disambiguation_result.decision}."
+            )
+            return disambiguation_result
+
+        if action.action_type == "request_human_review":
+            human_review_requested = True
+            disambiguation_result = _conservative_disambiguation(
+                "LLM review requested human review."
+            )
+            state.history.append(
+                f"Candidate {candidate_index} review ended with human review request."
+            )
+            return disambiguation_result
+
+        if action.action_type == "finalize":
+            return disambiguation_result or _conservative_disambiguation(
+                "LLM review requested human review."
+            )
+
+    limitations.append(
+        f"Candidate {candidate_index} review exceeded the maximum step limit; "
+        "human review required."
+    )
+    return disambiguation_result or _conservative_disambiguation(
+        "LLM action selection failed; human review required."
+    )
+
+
+def _is_valid_action(
+    action: AgentReviewAction,
+    candidate_index: int,
+    allowed_actions: list[str],
+) -> bool:
+    if action.action_type not in allowed_actions:
+        return False
+    if action.candidate_index not in {None, candidate_index}:
+        return False
+    return not (
+        action.action_type == "request_context"
+        and action.context_window_size is None
+    )
+
+
+def _conservative_disambiguation(rationale: str) -> DisambiguationResult:
+    return DisambiguationResult(
+        decision=DisambiguationDecision.UNCERTAIN,
+        confidence_score=0.0,
+        requires_human_review=True,
+        rationale=rationale,
+    )
 
 
 def _get_best_candidate_context(state: AgentReviewState, candidate_index: int) -> str:
@@ -204,10 +331,12 @@ class AgentOrchestrator:
         registry_entries: list[RegistryEntry],
         context_profiles: list[ContextProfile] | None = None,
         max_review_candidates: int = 20,
+        max_steps_per_candidate: int = 5,
     ) -> CheckReport:
         return run_bounded_review_check(
             article,
             registry_entries,
             context_profiles=context_profiles,
             max_review_candidates=max_review_candidates,
+            max_steps_per_candidate=max_steps_per_candidate,
         )

@@ -1,7 +1,7 @@
 """Prompt constants for future structured LLM calls."""
 
 from fa_checker.agent.context_profiles import ContextProfile
-from fa_checker.agent.state import ReviewCandidate
+from fa_checker.agent.state import AgentReviewState, ReviewCandidate
 from fa_checker.domain.models import RegistryEntry
 
 SYSTEM_PROMPT = (
@@ -87,6 +87,67 @@ Article context:
 """
 
 
+def build_review_action_prompt(
+    state: AgentReviewState,
+    candidate: ReviewCandidate,
+    available_context_texts: list[str],
+    context_profile: ContextProfile | None,
+    allowed_actions: list[str],
+) -> str:
+    """Build a concise JSON-only prompt for bounded review action selection."""
+    profile_section = _context_profile_section(context_profile)
+    context_section = _context_texts_section(available_context_texts)
+    return f"""Choose the next bounded review action for one weak candidate.
+
+Rules:
+- The deterministic baseline has already run.
+- You are reviewing only this weak candidate.
+- Choose exactly one action from the allowed actions.
+- Never choose request_context if request_context is not in allowed actions.
+- After two context requests, choose disambiguate_candidate if context is enough
+  or request_human_review if it is unsafe to decide.
+- The official registry entry is the only source of truth for registry status.
+- Local context profile data is auxiliary only and may help disambiguation.
+- Do not browse the internet.
+- Do not issue legal conclusions or legal verdicts.
+- Return JSON only, with no Markdown or extra text.
+
+Allowed actions:
+{", ".join(allowed_actions)}
+
+Decision guidance:
+- request_context: choose this if more article context is needed before disambiguation.
+- disambiguate_candidate: choose this if the provided context is enough to decide.
+- request_human_review: choose this if the case is too ambiguous or unsafe for model decision.
+- finalize: choose this only after disambiguation is completed or human review is requested.
+- context_window_size must be JSON null for non-request_context actions.
+
+Required JSON shape:
+{{
+  "action_type": "request_context | disambiguate_candidate | request_human_review | finalize",
+  "candidate_index": {candidate.candidate_index},
+  "context_window_size": "small | medium | large | null",
+  "reason": "short reason"
+}}
+
+Review progress:
+- weak_candidates_reviewed: {state.weak_candidates_reviewed}
+- disambiguation_completed: {state.disambiguation_completed}
+
+Candidate:
+- index: {candidate.candidate_index}
+- entity_name: {candidate.entity_name}
+- mention_text: {candidate.mention_text}
+- match_type: {candidate.match_type}
+- match_score: {candidate.match_score}
+
+Available article context:
+{context_section}
+
+{profile_section}
+"""
+
+
 def _context_profile_section(context_profile: ContextProfile | None) -> str:
     if context_profile is None:
         return "Local context profile: none provided."
@@ -106,3 +167,9 @@ def _context_profile_section(context_profile: ContextProfile | None) -> str:
 
 def _join_or_none(values: list[str]) -> str:
     return ", ".join(values) if values else "none"
+
+
+def _context_texts_section(context_texts: list[str]) -> str:
+    if not context_texts:
+        return "none provided."
+    return "\n".join(f"- {text}" for text in context_texts)

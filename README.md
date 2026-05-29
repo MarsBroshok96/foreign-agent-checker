@@ -80,8 +80,10 @@ poetry run fa-checker "URL" --mode deterministic
 ```
 
 Agentic mode runs the deterministic baseline first, then reviews only weak
-candidates with bounded local Ollama disambiguation. It may use local context
-profiles as auxiliary data, does not browse the internet, and final risk remains
+candidates through a bounded local Ollama action loop. The LLM may request
+article context, ask for disambiguation, request human review, or finalize that
+candidate review. Python validates every action, local context profiles are
+auxiliary data, there is no internet browsing, and final risk remains
 deterministic.
 
 ```bash

@@ -86,10 +86,30 @@ Agentic CLI mode still runs the deterministic layer first. The bounded review
 orchestrator reviews only weak candidates that require disambiguation; strong
 deterministic findings are not sent to the LLM by default.
 
-The LLM may only help decide whether a weak article mention refers to the
-registry candidate. Local context profiles are auxiliary support data, not a
-source of foreign-agent status. Ollama failures or invalid model output degrade
-to uncertain findings that require human review.
+Inside each weak-candidate review, the LLM may choose only these actions:
+
+- request_context;
+- disambiguate_candidate;
+- request_human_review;
+- finalize.
+
+The Python orchestrator validates every action before execution. Context profile
+lookup is automatic deterministic support data; it is not an LLM tool and it is
+not a source of foreign-agent status. Final scoring remains deterministic.
+Ollama failures, invalid actions, or invalid model output degrade to uncertain
+findings that require human review.
+
+LLM action outputs are parsed tolerantly for common JSON mistakes, then repaired
+only when there is a safe bounded action to take. For example, a third
+request_context action can be repaired to disambiguate_candidate when context is
+already available and the two-request context limit has been reached.
+
+request_human_review and disambiguate_candidate are terminal candidate actions;
+the model does not need to emit finalize afterward. Context requests are limited
+to two per candidate. Invalid or unsafe actions degrade to human review rather
+than crashing or broadening the tool scope.
+
+The runtime agent does not browse the internet.
 
 # Available tools
 get_context_window
@@ -140,9 +160,10 @@ Computes deterministic final risk level.
 
 Generates Markdown and JSON reports from structured findings.
 
-## Tool-call loop
+## Future general tool-call loop
 
-The orchestrator runs a bounded loop:
+The current implemented loop is intentionally narrower than a general agent. A
+future broader orchestrator may run a bounded loop:
 
 ```python
 while not ready_to_report and step_count < max_steps:

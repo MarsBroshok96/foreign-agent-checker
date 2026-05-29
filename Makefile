@@ -12,7 +12,7 @@ help:
 	@echo "  check     Run lint and tests"
 	@echo "  run       Run CLI"
 	@echo "  run-deterministic Run deterministic mode. Usage: make run-deterministic URL=\"https://...\""
-	@echo "  run-agentic Run agentic mode. Usage: make run-agentic URL=\"https://...\""
+	@echo "  run-agentic Run bounded LLM action loop. Usage: make run-agentic URL=\"https://...\""
 	@echo "  run-json  Run deterministic mode with JSON output"
 	@echo "  run-local Run CLI with local registry XLSX"
 	@echo "  run-local-json Run CLI with local registry XLSX and JSON output"
