@@ -58,6 +58,8 @@ def disambiguate_candidate(
             prompt=prompt,
             model=model or settings.ollama_model,
             base_url=base_url or settings.ollama_base_url,
+            format_json=True,
+            temperature=0.0,
         )
     except OllamaClientError:
         state.history.append(f"LLM disambiguation failed for candidate {candidate_index}.")

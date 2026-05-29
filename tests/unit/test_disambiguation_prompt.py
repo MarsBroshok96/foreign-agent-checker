@@ -95,4 +95,58 @@ def test_disambiguation_prompt_states_boundaries() -> None:
     assert "official registry entry is the only source of truth" in prompt
     assert "context profile data is auxiliary only" in prompt
     assert "Do not browse the internet" in prompt
+    assert "Do not issue legal conclusions or legal verdicts" in prompt
 
+
+def test_disambiguation_prompt_says_not_to_speculate_about_unseen_context() -> None:
+    prompt = build_disambiguation_prompt(
+        make_candidate(),
+        make_registry_entry(),
+        "Белый дом выступил с заявлением.",
+    )
+
+    assert "Do not speculate about unseen article text" in prompt
+
+
+def test_disambiguation_prompt_calibrates_uncertain_decision() -> None:
+    prompt = build_disambiguation_prompt(
+        make_candidate(),
+        make_registry_entry(),
+        "Белый дом выступил с заявлением.",
+    )
+
+    assert "Use uncertain only when the provided context itself is insufficient" in prompt
+    assert "genuinely ambiguous" in prompt
+
+
+def test_disambiguation_prompt_contains_bely_dom_different_entity_example() -> None:
+    prompt = build_disambiguation_prompt(
+        make_candidate(),
+        make_registry_entry(),
+        "Белый дом выступил с заявлением.",
+    )
+
+    assert "Белый дом выступил с заявлением после встречи." in prompt
+    assert "Expected decision: different_entity" in prompt
+
+
+def test_disambiguation_prompt_contains_posle_rain_different_entity_example() -> None:
+    prompt = build_disambiguation_prompt(
+        make_candidate(),
+        make_registry_entry(),
+        "Белый дом выступил с заявлением.",
+    )
+
+    assert "После дождя случилось событие." in prompt
+    assert "после is used as a common word" in prompt
+
+
+def test_disambiguation_prompt_contains_posle_media_likely_same_example() -> None:
+    prompt = build_disambiguation_prompt(
+        make_candidate(),
+        make_registry_entry(),
+        "Белый дом выступил с заявлением.",
+    )
+
+    assert "Издание После опубликовало новый материал." in prompt
+    assert "Expected decision: likely_same_entity" in prompt

@@ -53,3 +53,30 @@ def test_generate_ollama_response_raises_for_empty_response(monkeypatch) -> None
     with pytest.raises(OllamaClientError, match="empty"):
         generate_ollama_response("prompt", model="test-model")
 
+
+def test_generate_ollama_response_can_request_json_format(monkeypatch) -> None:
+    captured_payload = {}
+
+    def fake_post(url, json, timeout):
+        captured_payload.update(json)
+        return httpx.Response(200, json={"response": "{}"})
+
+    monkeypatch.setattr(ollama_client.httpx, "post", fake_post)
+
+    generate_ollama_response("prompt", model="test-model", format_json=True)
+
+    assert captured_payload["format"] == "json"
+
+
+def test_generate_ollama_response_can_set_temperature(monkeypatch) -> None:
+    captured_payload = {}
+
+    def fake_post(url, json, timeout):
+        captured_payload.update(json)
+        return httpx.Response(200, json={"response": "{}"})
+
+    monkeypatch.setattr(ollama_client.httpx, "post", fake_post)
+
+    generate_ollama_response("prompt", model="test-model", temperature=0.0)
+
+    assert captured_payload["options"] == {"temperature": 0.0}

@@ -25,6 +25,15 @@ Rules:
 - The official registry entry is the only source of truth for registry status.
 - Local context profile data is auxiliary only and may help disambiguation.
 - Do not issue legal conclusions or legal verdicts.
+- Base the decision only on the provided article context, registry entry,
+  and optional local context profile.
+- Do not speculate about unseen article text.
+- Do not choose uncertain only because the same word could theoretically refer
+  to the candidate elsewhere.
+- Use uncertain only when the provided context itself is insufficient or genuinely ambiguous.
+- Choose different_entity when the provided context clearly refers to a
+  different person, organization, institution, place, common phrase,
+  color/adjective/common-word usage, or unrelated grammatical use.
 - Return JSON only, with no Markdown or extra text.
 
 Decision meanings:
@@ -32,6 +41,24 @@ Decision meanings:
 - likely_same_entity: context probably refers to the registry entity, but there is ambiguity.
 - uncertain: not enough context to decide.
 - different_entity: context clearly refers to something else.
+
+Calibration examples:
+- Candidate: Белый Руслан Викторович
+  Mention context: Белый дом выступил с заявлением после встречи.
+  Expected decision: different_entity
+  Reason: Белый дом is an institution/place expression, not the person.
+- Candidate: Проект «После»
+  Mention context: После дождя случилось событие.
+  Expected decision: different_entity
+  Reason: после is used as a common word, not as a project name.
+- Candidate: Проект «После»
+  Mention context: Издание После опубликовало новый материал.
+  Expected decision: likely_same_entity
+  Reason: context indicates a media/project mention.
+- Candidate: Варламов Илья Александрович
+  Mention context: Урбанист Варламов прокомментировал благоустройство.
+  Expected decision: likely_same_entity
+  Reason: surname-only mention is supported by a descriptor consistent with the profile.
 
 Required JSON shape:
 {{

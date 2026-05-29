@@ -14,6 +14,8 @@ def generate_ollama_response(
     model: str,
     base_url: str = "http://localhost:11434",
     timeout_seconds: float = 60.0,
+    format_json: bool = False,
+    temperature: float | None = None,
 ) -> str:
     """Generate a non-streaming response from a local Ollama model."""
     url = f"{base_url.rstrip('/')}/api/generate"
@@ -22,6 +24,10 @@ def generate_ollama_response(
         "prompt": prompt,
         "stream": False,
     }
+    if format_json:
+        payload["format"] = "json"
+    if temperature is not None:
+        payload["options"] = {"temperature": temperature}
     try:
         response = httpx.post(url, json=payload, timeout=timeout_seconds)
     except httpx.HTTPError as exc:

@@ -116,7 +116,13 @@ def test_parse_disambiguation_result_missing_rationale_returns_fallback() -> Non
 
 
 def test_disambiguate_candidate_returns_parsed_ollama_result(monkeypatch) -> None:
-    def fake_generate_ollama_response(prompt, model, base_url):
+    def fake_generate_ollama_response(
+        prompt,
+        model,
+        base_url,
+        format_json=False,
+        temperature=None,
+    ):
         return """
         {
           "decision": "different_entity",
@@ -146,8 +152,53 @@ def test_disambiguate_candidate_returns_parsed_ollama_result(monkeypatch) -> Non
     assert result.requires_human_review is False
 
 
+def test_disambiguate_candidate_requests_json_and_zero_temperature(monkeypatch) -> None:
+    captured_options = {}
+
+    def fake_generate_ollama_response(
+        prompt,
+        model,
+        base_url,
+        format_json=False,
+        temperature=None,
+    ):
+        captured_options["format_json"] = format_json
+        captured_options["temperature"] = temperature
+        return """
+        {
+          "decision": "different_entity",
+          "confidence_score": 0.9,
+          "requires_human_review": false,
+          "rationale": "Context refers to the White House, not the person."
+        }
+        """
+
+    monkeypatch.setattr(
+        disambiguation,
+        "generate_ollama_response",
+        fake_generate_ollama_response,
+    )
+    state = weak_review_state()
+
+    disambiguate_candidate(
+        state,
+        candidate_index=0,
+        context_text="Белый дом выступил с заявлением.",
+        model="test-model",
+        base_url="http://ollama.test",
+    )
+
+    assert captured_options == {"format_json": True, "temperature": 0.0}
+
+
 def test_disambiguate_candidate_returns_fallback_on_ollama_error(monkeypatch) -> None:
-    def fake_generate_ollama_response(prompt, model, base_url):
+    def fake_generate_ollama_response(
+        prompt,
+        model,
+        base_url,
+        format_json=False,
+        temperature=None,
+    ):
         raise OllamaClientError("offline")
 
     monkeypatch.setattr(
