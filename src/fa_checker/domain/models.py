@@ -123,6 +123,30 @@ class FinalFinding(BaseModel):
     rationale: str
 
 
+class ProcessingSummary(BaseModel):
+    mode: str = "deterministic"
+    deterministic_candidates_total: int = Field(default=0, ge=0)
+    deterministic_strong_candidates: int = Field(default=0, ge=0)
+    deterministic_weak_candidates: int = Field(default=0, ge=0)
+    deterministic_confirmed_findings: int = Field(default=0, ge=0)
+    deterministic_probable_findings: int = Field(default=0, ge=0)
+    deterministic_uncertain_findings: int = Field(default=0, ge=0)
+    deterministic_rejected_findings: int = Field(default=0, ge=0)
+    agentic_review_applied: bool = False
+    agentic_review_candidates_total: int = Field(default=0, ge=0)
+    agentic_reviewed_candidates: int = Field(default=0, ge=0)
+    agentic_confirmed_after_review: int = Field(default=0, ge=0)
+    agentic_probable_after_review: int = Field(default=0, ge=0)
+    agentic_uncertain_after_review: int = Field(default=0, ge=0)
+    agentic_rejected_after_review: int = Field(default=0, ge=0)
+    final_findings_total: int = Field(default=0, ge=0)
+    final_confirmed_findings: int = Field(default=0, ge=0)
+    final_probable_findings: int = Field(default=0, ge=0)
+    final_uncertain_findings: int = Field(default=0, ge=0)
+    final_rejected_findings: int = Field(default=0, ge=0)
+    final_requires_human_review: int = Field(default=0, ge=0)
+
+
 class CheckReport(BaseModel):
     article_url: str
     article_title: str | None = None
@@ -132,6 +156,7 @@ class CheckReport(BaseModel):
     status: ReportStatus
     findings: list[FinalFinding] = Field(default_factory=list)
     limitations: list[str] = Field(default_factory=list)
+    processing_summary: ProcessingSummary | None = None
 
 
 class AgentAction(BaseModel):
@@ -139,4 +164,3 @@ class AgentAction(BaseModel):
     tool_name: str | None = None
     arguments: dict[str, Any] = Field(default_factory=dict)
     reason: str
-

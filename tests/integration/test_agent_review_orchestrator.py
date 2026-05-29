@@ -136,6 +136,10 @@ def test_llm_requests_small_context_then_disambiguates_different_entity(
 
     assert context_counts["0"] == 1
     assert report.status == ReportStatus.NO_MATCH
+    assert report.processing_summary is not None
+    assert report.processing_summary.mode == "agentic"
+    assert report.processing_summary.agentic_reviewed_candidates == 1
+    assert report.processing_summary.agentic_rejected_after_review == 1
     finding = report.findings[0]
     assert finding.status == FindingStatus.REJECTED
     assert finding.risk_level == RiskLevel.LOW

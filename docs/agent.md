@@ -109,6 +109,10 @@ the model does not need to emit finalize afterward. Context requests are limited
 to two per candidate. Invalid or unsafe actions degrade to human review rather
 than crashing or broadening the tool scope.
 
+Agentic review can reject weak candidates. If all candidates are rejected, the
+overall report status can become `no_match`; rejected candidates remain in the
+report for auditability.
+
 The runtime agent does not browse the internet.
 
 # Available tools

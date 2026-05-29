@@ -62,6 +62,10 @@ def test_run_offline_check_scores_strong_match_without_label_as_high_risk() -> N
     assert finding.risk_level == RiskLevel.HIGH
     assert finding.label_status == LabelStatus.ABSENT
     assert finding.requires_human_review is True
+    assert report.processing_summary is not None
+    assert report.processing_summary.mode == "deterministic"
+    assert report.processing_summary.deterministic_strong_candidates == 1
+    assert report.processing_summary.final_requires_human_review == 1
 
 
 def test_run_offline_check_scores_strong_match_with_nearby_label_as_low_risk() -> None:

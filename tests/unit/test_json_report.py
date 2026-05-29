@@ -9,7 +9,12 @@ from fa_checker.domain.enums import (
     ReportStatus,
     RiskLevel,
 )
-from fa_checker.domain.models import CheckReport, EvidenceFragment, FinalFinding
+from fa_checker.domain.models import (
+    CheckReport,
+    EvidenceFragment,
+    FinalFinding,
+    ProcessingSummary,
+)
 from fa_checker.reporting.json_report import report_to_dict, report_to_json
 
 
@@ -42,6 +47,13 @@ def make_report() -> CheckReport:
             )
         ],
         limitations=["Offline deterministic check only."],
+        processing_summary=ProcessingSummary(
+            mode="deterministic",
+            deterministic_candidates_total=1,
+            deterministic_strong_candidates=1,
+            final_findings_total=1,
+            final_confirmed_findings=1,
+        ),
     )
 
 
@@ -80,3 +92,9 @@ def test_report_to_json_includes_findings() -> None:
     assert len(parsed["findings"]) == 1
     assert parsed["findings"][0]["evidence"][0]["source"] == "article_text"
 
+
+def test_report_to_json_includes_processing_summary() -> None:
+    parsed = json.loads(report_to_json(make_report()))
+
+    assert parsed["processing_summary"]["mode"] == "deterministic"
+    assert parsed["processing_summary"]["deterministic_candidates_total"] == 1

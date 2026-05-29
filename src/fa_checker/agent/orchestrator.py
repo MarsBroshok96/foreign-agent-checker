@@ -23,6 +23,7 @@ from fa_checker.domain.models import (
     CheckReport,
     DisambiguationResult,
     FinalFinding,
+    ProcessingSummary,
     RegistryEntry,
 )
 from fa_checker.pipeline import run_deterministic_analysis
@@ -56,6 +57,9 @@ def run_bounded_review_check(
     limitations = _agent_limitations(analysis.limitations)
 
     review_candidates = state.review_candidates[: max(0, max_review_candidates)]
+    reviewed_candidate_indexes = [
+        review_candidate.candidate_index for review_candidate in review_candidates
+    ]
     if len(state.review_candidates) > len(review_candidates):
         limitations.append(
             "Some weak candidates were not reviewed because the review limit was reached."
@@ -92,6 +96,11 @@ def run_bounded_review_check(
         status=_derive_report_status(final_findings),
         findings=final_findings,
         limitations=_dedupe_limitations(limitations),
+        processing_summary=_build_agentic_processing_summary(
+            analysis=analysis,
+            final_findings=final_findings,
+            reviewed_candidate_indexes=reviewed_candidate_indexes,
+        ),
     )
 
 
@@ -317,6 +326,59 @@ def _dedupe_limitations(limitations: list[str]) -> list[str]:
         if limitation not in deduped:
             deduped.append(limitation)
     return deduped
+
+
+def _build_agentic_processing_summary(
+    analysis,
+    final_findings: list[FinalFinding],
+    reviewed_candidate_indexes: list[int],
+) -> ProcessingSummary:
+    reviewed_findings = [
+        final_findings[index]
+        for index in reviewed_candidate_indexes
+        if index < len(final_findings)
+    ]
+    return ProcessingSummary(
+        mode="agentic",
+        deterministic_candidates_total=len(analysis.candidates),
+        deterministic_strong_candidates=analysis.strong_candidates_count,
+        deterministic_weak_candidates=analysis.weak_candidates_count,
+        deterministic_confirmed_findings=analysis.confirmed_findings_count,
+        deterministic_probable_findings=analysis.probable_findings_count,
+        deterministic_uncertain_findings=analysis.uncertain_findings_count,
+        deterministic_rejected_findings=analysis.rejected_findings_count,
+        agentic_review_applied=bool(analysis.requires_agent_review),
+        agentic_review_candidates_total=analysis.weak_candidates_count,
+        agentic_reviewed_candidates=len(reviewed_candidate_indexes),
+        agentic_confirmed_after_review=_count_findings(
+            reviewed_findings,
+            FindingStatus.CONFIRMED,
+        ),
+        agentic_probable_after_review=_count_findings(
+            reviewed_findings,
+            FindingStatus.PROBABLE,
+        ),
+        agentic_uncertain_after_review=_count_findings(
+            reviewed_findings,
+            FindingStatus.UNCERTAIN,
+        ),
+        agentic_rejected_after_review=_count_findings(
+            reviewed_findings,
+            FindingStatus.REJECTED,
+        ),
+        final_findings_total=len(final_findings),
+        final_confirmed_findings=_count_findings(final_findings, FindingStatus.CONFIRMED),
+        final_probable_findings=_count_findings(final_findings, FindingStatus.PROBABLE),
+        final_uncertain_findings=_count_findings(final_findings, FindingStatus.UNCERTAIN),
+        final_rejected_findings=_count_findings(final_findings, FindingStatus.REJECTED),
+        final_requires_human_review=sum(
+            finding.requires_human_review for finding in final_findings
+        ),
+    )
+
+
+def _count_findings(findings: list[FinalFinding], status: FindingStatus) -> int:
+    return sum(finding.status == status for finding in findings)
 
 
 class AgentOrchestrator:

@@ -108,6 +108,19 @@ poetry run python scripts/profile_coverage.py data/registry/minjust_registry_lat
 
 See [docs/context_profile_enrichment_skill.md](docs/context_profile_enrichment_skill.md).
 
+## Report Interpretation
+
+Markdown reports separate the deterministic layer summary, agentic review
+summary, and final finding groups:
+
+- confirmed/probable findings that do not require human review;
+- candidates requiring human review;
+- candidates rejected after review.
+
+If all weak candidates are rejected, the overall status may be `no_match` while
+the report still lists rejected candidates for auditability. The report is a
+compliance-assistance artifact, not a legal verdict.
+
 ## Test
 ```bash
 make test

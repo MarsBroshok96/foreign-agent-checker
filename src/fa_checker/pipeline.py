@@ -5,7 +5,13 @@ from datetime import UTC, date, datetime
 from fa_checker.agent.context_profiles import ContextProfile
 from fa_checker.agent.state import DeterministicAnalysisResult
 from fa_checker.domain.enums import FindingStatus, ReportStatus
-from fa_checker.domain.models import Article, CheckReport, FinalFinding, RegistryEntry
+from fa_checker.domain.models import (
+    Article,
+    CheckReport,
+    FinalFinding,
+    ProcessingSummary,
+    RegistryEntry,
+)
 from fa_checker.matching.exact import find_exact_matches
 from fa_checker.matching.labels import check_label
 from fa_checker.scoring.risk import ScoringInput, score_candidate_matches
@@ -38,6 +44,10 @@ def run_deterministic_analysis(
         article=article,
         registry_snapshot_date=registry_snapshot_date,
         findings=findings,
+        processing_summary=_build_deterministic_processing_summary(
+            candidates=candidates,
+            findings=findings,
+        ),
     )
 
     return DeterministicAnalysisResult(
@@ -86,6 +96,7 @@ def _build_check_report(
     article: Article,
     registry_snapshot_date: date | None,
     findings: list[FinalFinding],
+    processing_summary: ProcessingSummary | None = None,
 ) -> CheckReport:
     return CheckReport(
         article_url=article.url,
@@ -96,6 +107,7 @@ def _build_check_report(
         status=_derive_report_status(findings),
         findings=findings,
         limitations=[OFFLINE_LIMITATION],
+        processing_summary=processing_summary,
     )
 
 
@@ -128,6 +140,38 @@ def _derive_report_status(findings: list[FinalFinding]) -> ReportStatus:
 
 def _count_findings(findings: list[FinalFinding], status: FindingStatus) -> int:
     return sum(finding.status == status for finding in findings)
+
+
+def _build_deterministic_processing_summary(
+    candidates,
+    findings: list[FinalFinding],
+) -> ProcessingSummary:
+    confirmed = _count_findings(findings, FindingStatus.CONFIRMED)
+    probable = _count_findings(findings, FindingStatus.PROBABLE)
+    uncertain = _count_findings(findings, FindingStatus.UNCERTAIN)
+    rejected = _count_findings(findings, FindingStatus.REJECTED)
+    return ProcessingSummary(
+        mode="deterministic",
+        deterministic_candidates_total=len(candidates),
+        deterministic_strong_candidates=sum(
+            not candidate.requires_disambiguation for candidate in candidates
+        ),
+        deterministic_weak_candidates=sum(
+            candidate.requires_disambiguation for candidate in candidates
+        ),
+        deterministic_confirmed_findings=confirmed,
+        deterministic_probable_findings=probable,
+        deterministic_uncertain_findings=uncertain,
+        deterministic_rejected_findings=rejected,
+        final_findings_total=len(findings),
+        final_confirmed_findings=confirmed,
+        final_probable_findings=probable,
+        final_uncertain_findings=uncertain,
+        final_rejected_findings=rejected,
+        final_requires_human_review=sum(
+            finding.requires_human_review for finding in findings
+        ),
+    )
 
 
 def _get_registry_snapshot_date(registry_entries: list[RegistryEntry]) -> date | None:
