@@ -107,6 +107,21 @@ def test_run_offline_check_keeps_one_token_project_alias_as_weak_potential() -> 
     assert finding.requires_human_review is True
 
 
+def test_run_offline_check_carries_context_evidence_for_weak_match() -> None:
+    report = run_offline_check(
+        make_article("Белый дом выступил с заявлением после встречи."),
+        [make_entry("Белый Руслан Викторович")],
+    )
+
+    assert len(report.findings) == 1
+    finding = report.findings[0]
+    assert finding.status == FindingStatus.UNCERTAIN
+    assert finding.evidence
+    evidence_text = finding.evidence[0].text
+    assert len(evidence_text) > len("белый")
+    assert "дом" in evidence_text.lower()
+
+
 def test_run_offline_check_handles_multiple_findings() -> None:
     report = run_offline_check(
         make_article("Илья Варламов и После упоминаются в одном материале."),

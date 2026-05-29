@@ -1,5 +1,6 @@
 """Deterministic exact matching over normalized article text."""
 
+from fa_checker.article.context import get_context_window
 from fa_checker.article.normalizer import normalize_for_matching
 from fa_checker.domain.enums import EvidenceSource, MatchType
 from fa_checker.domain.models import Article, CandidateMatch, EvidenceFragment, RegistryEntry
@@ -45,6 +46,7 @@ def find_exact_matches(
     for entry in registry_entries:
         aliases = build_aliases(entry)
         strong_matches = _find_entry_matches(
+            article_text=article.text,
             normalized_text=normalized_text,
             entry=entry,
             aliases=aliases.strong,
@@ -58,6 +60,7 @@ def find_exact_matches(
 
         matches.extend(
             _find_entry_matches(
+                article_text=article.text,
                 normalized_text=normalized_text,
                 entry=entry,
                 aliases=aliases.weak,
@@ -71,6 +74,7 @@ def find_exact_matches(
 
 
 def _find_entry_matches(
+    article_text: str,
     normalized_text: str,
     entry: RegistryEntry,
     aliases: list[str],
@@ -100,9 +104,9 @@ def _find_entry_matches(
                     match_type=match_type,
                     match_score=match_score,
                     evidence=[
-                        EvidenceFragment(
-                            source=EvidenceSource.ARTICLE_TEXT,
-                            text=normalized_text[start:end],
+                        _make_context_evidence(
+                            article_text=article_text,
+                            normalized_text=normalized_text,
                             start=start,
                             end=end,
                         )
@@ -112,3 +116,26 @@ def _find_entry_matches(
             )
 
     return matches
+
+
+def _make_context_evidence(
+    article_text: str,
+    normalized_text: str,
+    start: int,
+    end: int,
+    window_size: int = 160,
+) -> EvidenceFragment:
+    try:
+        return get_context_window(article_text, start, end, window_size)
+    except ValueError:
+        pass
+
+    try:
+        return get_context_window(normalized_text, start, end, window_size)
+    except ValueError:
+        return EvidenceFragment(
+            source=EvidenceSource.ARTICLE_TEXT,
+            text=normalized_text[start:end],
+            start=start,
+            end=end,
+        )

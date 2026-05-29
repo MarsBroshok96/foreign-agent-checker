@@ -9,6 +9,7 @@ from fa_checker.domain.enums import (
     RiskLevel,
 )
 from fa_checker.domain.models import CheckReport, EvidenceFragment, FinalFinding
+from fa_checker.pipeline import run_offline_check
 from fa_checker.reporting.markdown_report import report_to_markdown
 
 
@@ -136,3 +137,28 @@ def test_markdown_uses_cautious_wording() -> None:
     ]
     for phrase in forbidden_phrases:
         assert phrase not in markdown
+
+
+def test_markdown_renders_context_evidence_from_offline_pipeline() -> None:
+    from fa_checker.domain.enums import EntityType
+    from fa_checker.domain.models import Article, RegistryEntry
+
+    report = run_offline_check(
+        Article(
+            url="https://www.rambler.ru/example",
+            source_domain="www.rambler.ru",
+            text="Белый дом выступил с заявлением после встречи.",
+        ),
+        [
+            RegistryEntry(
+                full_name="Белый Руслан Викторович",
+                entity_type=EntityType.PERSON,
+                normalized_name="белый руслан викторович",
+                registry_source_url="https://minjust.gov.ru/registry",
+            )
+        ],
+    )
+
+    markdown = report_to_markdown(report)
+
+    assert "Белый дом выступил" in markdown

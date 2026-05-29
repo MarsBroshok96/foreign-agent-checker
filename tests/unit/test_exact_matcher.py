@@ -50,6 +50,18 @@ def test_exact_matcher_finds_name_surname_as_strong_match() -> None:
     assert matches[0].mention_text == "илья варламов"
 
 
+def test_exact_matcher_evidence_contains_context_for_strong_match() -> None:
+    article = make_article("До этого Илья Варламов прокомментировал ситуацию после заседания.")
+
+    matches = find_exact_matches(article, [make_entry()])
+
+    assert len(matches) == 1
+    evidence_text = matches[0].evidence[0].text
+    assert "Илья Варламов" in evidence_text or "илья варламов" in evidence_text
+    assert "До этого" in evidence_text or "прокомментировал" in evidence_text
+    assert len(evidence_text) > len(matches[0].mention_text)
+
+
 def test_exact_matcher_marks_surname_only_as_weak_alias() -> None:
     article = make_article("В тексте встречается только Варламов.")
 
@@ -133,6 +145,20 @@ def test_exact_matcher_treats_person_one_token_pseudonym_as_weak() -> None:
     assert matches[0].requires_disambiguation is True
 
 
+def test_exact_matcher_evidence_contains_context_for_weak_one_token_match() -> None:
+    article = make_article("Белый дом выступил с заявлением после встречи.")
+    entry = make_entry("Белый Руслан Викторович")
+
+    matches = find_exact_matches(article, [entry])
+
+    assert len(matches) == 1
+    assert matches[0].mention_text == "белый"
+    assert matches[0].requires_disambiguation is True
+    evidence_text = matches[0].evidence[0].text
+    assert len(evidence_text) > len(matches[0].mention_text)
+    assert "дом" in evidence_text.lower()
+
+
 def test_exact_matcher_returns_empty_list_when_no_aliases_found() -> None:
     article = make_article("В тексте нет нужных имен.")
 
@@ -147,6 +173,7 @@ def test_exact_matcher_does_not_duplicate_same_alias_at_same_position() -> None:
 
     assert len(matches) == 1
     assert matches[0].mention_text == "илья варламов"
-    assert matches[0].evidence[0].text == "илья варламов"
-    assert matches[0].evidence[0].start == matches[0].mention_start
-    assert matches[0].evidence[0].end == matches[0].mention_end
+    assert "Илья Варламов" in matches[0].evidence[0].text
+    assert len(matches[0].evidence[0].text) > len(matches[0].mention_text)
+    assert matches[0].evidence[0].start <= matches[0].mention_start
+    assert matches[0].evidence[0].end >= matches[0].mention_end
