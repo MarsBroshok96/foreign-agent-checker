@@ -80,7 +80,7 @@ def main(
             "--context-profiles-path",
             help="Path to local context profiles JSON for agentic mode.",
         ),
-    ] = Path("data/context/context_profiles.example.json"),
+    ] = Path("data/context/context_profiles.json"),
 ) -> None:
     """Run article check and render a report."""
     if mode not in {"deterministic", "agentic"}:

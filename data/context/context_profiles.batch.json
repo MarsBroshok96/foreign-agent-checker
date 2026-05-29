@@ -1,0 +1,1308 @@
+{
+  "profiles": [
+    {
+      "registry_id": "1004",
+      "entity_name": "«Москва против мобилизации»",
+      "entity_type": "project",
+      "role_or_category": "civic media project",
+      "short_description": "Проект или канал с названием «Москва против мобилизации».",
+      "descriptors": [
+        "проект",
+        "канал"
+      ],
+      "known_projects": [
+        "Москва против мобилизации"
+      ],
+      "known_domains": [],
+      "common_mentions": [
+        "Москва против мобилизации"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если контекст указывает на проект, организацию, канал, издание или интернет-ресурс."
+      ],
+      "negative_context_hints": [
+        "Обычное употребление слов из названия без указания на проект или организацию требует осторожной проверки."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": [
+        "https://telemetr.io/en/channels/1569069069-msk_gde"
+      ]
+    },
+    {
+      "registry_id": "1005",
+      "entity_name": "Жемкова Елена Борисовна",
+      "entity_type": "person",
+      "role_or_category": "human rights defender",
+      "short_description": "Российская общественная деятельница и правозащитница, связанная с Международным обществом «Мемориал».",
+      "descriptors": [
+        "правозащитница",
+        "общественная деятельница"
+      ],
+      "known_projects": [
+        "Мемориал",
+        "Международный Мемориал"
+      ],
+      "known_domains": [],
+      "common_mentions": [
+        "Елена Жемкова",
+        "Жемкова"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": [
+        "https://ru.wikipedia.org/wiki/Жемкова,_Елена_Борисовна"
+      ]
+    },
+    {
+      "registry_id": "1006",
+      "entity_name": "Калганов Рустам Петрович \"Рустам Солнцев\"",
+      "entity_type": "person",
+      "role_or_category": "television personality",
+      "short_description": "Российский телеведущий и медиаперсона, известный как Рустам Солнцев.",
+      "descriptors": [
+        "телеведущий",
+        "медиаперсона"
+      ],
+      "known_projects": [
+        "Дом-2"
+      ],
+      "known_domains": [],
+      "common_mentions": [
+        "Рустам Калганов",
+        "Калганов",
+        "Рустам Солнцев"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": [
+        "https://www.vokrug.tv/person/show/rustam_solntsev/"
+      ]
+    },
+    {
+      "registry_id": "1007",
+      "entity_name": "Козловский Олег Юрьевич",
+      "entity_type": "person",
+      "role_or_category": "activist",
+      "short_description": null,
+      "descriptors": [
+        "активист"
+      ],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Олег Козловский",
+        "Козловский"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1008",
+      "entity_name": "Кутаев Руслан Махамдиевич",
+      "entity_type": "person",
+      "role_or_category": "public figure",
+      "short_description": "Чеченский общественный и политический деятель.",
+      "descriptors": [
+        "общественный деятель",
+        "политический деятель"
+      ],
+      "known_projects": [
+        "Ассамблея народов Кавказа"
+      ],
+      "known_domains": [],
+      "common_mentions": [
+        "Руслан Кутаев",
+        "Кутаев"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": [
+        "https://ru.wikipedia.org/wiki/Кутаев,_Руслан_Махамдиевич"
+      ]
+    },
+    {
+      "registry_id": "1009",
+      "entity_name": "Пивоваров Андрей Сергеевич",
+      "entity_type": "person",
+      "role_or_category": "politician",
+      "short_description": "Российский оппозиционный политик и предприниматель.",
+      "descriptors": [
+        "политик",
+        "предприниматель"
+      ],
+      "known_projects": [
+        "Открытая Россия"
+      ],
+      "known_domains": [],
+      "common_mentions": [
+        "Андрей Пивоваров",
+        "Пивоваров"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": [
+        "https://ru.wikipedia.org/wiki/Пивоваров,_Андрей_Сергеевич"
+      ]
+    },
+    {
+      "registry_id": "1010",
+      "entity_name": "Секретарева Наталия Михайловна",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Наталия Секретарева",
+        "Секретарева"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1011",
+      "entity_name": "Фицнер Виолетта Юрьевна",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Виолетта Фицнер",
+        "Фицнер"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1012",
+      "entity_name": "Шедов Денис Викторович",
+      "entity_type": "person",
+      "role_or_category": "legal scholar",
+      "short_description": null,
+      "descriptors": [
+        "юрист",
+        "исследователь"
+      ],
+      "known_projects": [
+        "ВШЭ"
+      ],
+      "known_domains": [],
+      "common_mentions": [
+        "Денис Шедов",
+        "Шедов"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": [
+        "https://csb.sfedu.ru/index.php/csbjournal/article/view/21"
+      ]
+    },
+    {
+      "registry_id": "1013",
+      "entity_name": "Бобринский Николай Алексеевич",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Николай Бобринский",
+        "Бобринский"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1014",
+      "entity_name": "Ванюков Александр Евгеньевич",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Александр Ванюков",
+        "Ванюков"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1015",
+      "entity_name": "Гарина Анастасия Игоревна",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Анастасия Гарина",
+        "Гарина"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1016",
+      "entity_name": "Соломонов Артур Петрович",
+      "entity_type": "person",
+      "role_or_category": "writer and journalist",
+      "short_description": "Российский писатель, драматург, журналист и театральный критик.",
+      "descriptors": [
+        "писатель",
+        "драматург",
+        "журналист",
+        "театральный критик"
+      ],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Артур Соломонов",
+        "Соломонов"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": [
+        "https://artursolomonov.ru/biografiya/",
+        "https://ru.wikipedia.org/wiki/Соломонов,_Артур_Петрович"
+      ]
+    },
+    {
+      "registry_id": "1017",
+      "entity_name": "Стомахин Борис Владимирович",
+      "entity_type": "person",
+      "role_or_category": "publicist",
+      "short_description": "Российский публицист и редактор интернет-издания «Радикальная политика».",
+      "descriptors": [
+        "публицист",
+        "редактор"
+      ],
+      "known_projects": [
+        "Радикальная политика"
+      ],
+      "known_domains": [],
+      "common_mentions": [
+        "Борис Стомахин",
+        "Стомахин"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": [
+        "https://ru.wikipedia.org/wiki/Стомахин,_Борис_Владимирович"
+      ]
+    },
+    {
+      "registry_id": "1018",
+      "entity_name": "Хмелёв Александр Владимирович",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Александр Хмелёв",
+        "Хмелёв"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1019",
+      "entity_name": "Шукшин Иван Алексеевич",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Иван Шукшин",
+        "Шукшин"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1020",
+      "entity_name": "Медиапроект «Горби медиа»",
+      "entity_type": "project",
+      "role_or_category": "media project",
+      "short_description": "Медиапроект с названием «Горби медиа».",
+      "descriptors": [
+        "медиапроект"
+      ],
+      "known_projects": [
+        "Горби медиа"
+      ],
+      "known_domains": [],
+      "common_mentions": [
+        "Горби медиа"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если контекст указывает на проект, организацию, канал, издание или интернет-ресурс."
+      ],
+      "negative_context_hints": [
+        "Обычное употребление слов из названия без указания на проект или организацию требует осторожной проверки."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1021",
+      "entity_name": "Егорченко Евгений Андреевич",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Евгений Егорченко",
+        "Егорченко"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1022",
+      "entity_name": "Звягин Иван Михайлович",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Иван Звягин",
+        "Звягин"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1023",
+      "entity_name": "Иманова Тамилла Вагиф кызы",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Тамилла Иманова",
+        "Иманова"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1024",
+      "entity_name": "Иордатий Дмитрий Николаевич \"Наум Блик, Dry Ice\"",
+      "entity_type": "person",
+      "role_or_category": "musician",
+      "short_description": null,
+      "descriptors": [
+        "музыкант"
+      ],
+      "known_projects": [
+        "Наум Блик",
+        "Dry Ice"
+      ],
+      "known_domains": [],
+      "common_mentions": [
+        "Дмитрий Иордатий",
+        "Иордатий",
+        "Наум Блик, Dry Ice",
+        "Наум Блик",
+        "Dry Ice"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1025",
+      "entity_name": "Клыга Артем Александрович",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Артем Клыга",
+        "Клыга"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1026",
+      "entity_name": "Трикоз Евгений Сергеевич",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Евгений Трикоз",
+        "Трикоз"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1027",
+      "entity_name": "Елизаров Павел Олегович",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Павел Елизаров",
+        "Елизаров"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1028",
+      "entity_name": "Зубарева Раиса Дмитриевна",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Раиса Зубарева",
+        "Зубарева"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1029",
+      "entity_name": "Литвишко Дарья Алексеевна",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Дарья Литвишко",
+        "Литвишко"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1030",
+      "entity_name": "Поташов Валерий Николаевич",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Валерий Поташов",
+        "Поташов"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1031",
+      "entity_name": "Росов Николай Вячеславович",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Николай Росов",
+        "Росов"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1032",
+      "entity_name": "Общественное движение «Наш выход»",
+      "entity_type": "organization",
+      "role_or_category": "civic movement",
+      "short_description": "Общественное движение с названием «Наш выход».",
+      "descriptors": [
+        "общественное движение"
+      ],
+      "known_projects": [
+        "Наш выход"
+      ],
+      "known_domains": [],
+      "common_mentions": [
+        "Наш выход"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если контекст указывает на проект, организацию, канал, издание или интернет-ресурс."
+      ],
+      "negative_context_hints": [
+        "Обычное употребление слов из названия без указания на проект или организацию требует осторожной проверки."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1033",
+      "entity_name": "Великий Дмитрий Сергеевич",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Дмитрий Великий",
+        "Великий"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1034",
+      "entity_name": "Жарков Василий Павлович",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Василий Жарков",
+        "Жарков"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1035",
+      "entity_name": "Кириллова Ксения Валерьевна",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Ксения Кириллова",
+        "Кириллова"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1036",
+      "entity_name": "Ольшевец Фелицата Дмитриевна \"Маша Майерс\"",
+      "entity_type": "person",
+      "role_or_category": "media personality",
+      "short_description": null,
+      "descriptors": [
+        "медиаперсона"
+      ],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Фелицата Ольшевец",
+        "Ольшевец",
+        "Маша Майерс"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1037",
+      "entity_name": "Резник Наталья Рэмовна",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Наталья Резник",
+        "Резник"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1038",
+      "entity_name": "Торстрем Ксения Владимировна",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Ксения Торстрем",
+        "Торстрем"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1039",
+      "entity_name": "Храмцов Дмитрий Александрович",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Дмитрий Храмцов",
+        "Храмцов"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1040",
+      "entity_name": "Интернет-портал «Activatica.org»",
+      "entity_type": "project",
+      "role_or_category": "media outlet",
+      "short_description": "Интернет-портал Activatica.org.",
+      "descriptors": [
+        "интернет-портал",
+        "медиа"
+      ],
+      "known_projects": [
+        "Activatica.org"
+      ],
+      "known_domains": [
+        "activatica.org"
+      ],
+      "common_mentions": [
+        "Activatica.org",
+        "Activatica",
+        "Активатика"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если контекст указывает на проект, организацию, канал, издание или интернет-ресурс."
+      ],
+      "negative_context_hints": [
+        "Обычное употребление слов из названия без указания на проект или организацию требует осторожной проверки."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": [
+        "https://activatica.org/"
+      ]
+    },
+    {
+      "registry_id": "1041",
+      "entity_name": "Долиев Михаил Вячеславович",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Михаил Долиев",
+        "Долиев"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1042",
+      "entity_name": "Мовчан Андрей Андреевич",
+      "entity_type": "person",
+      "role_or_category": "economist",
+      "short_description": null,
+      "descriptors": [
+        "экономист"
+      ],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Андрей Мовчан",
+        "Мовчан"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1043",
+      "entity_name": "Мысина Оксана Анатольевна",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Оксана Мысина",
+        "Мысина"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1044",
+      "entity_name": "Сивенок Андрей Александрович",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Андрей Сивенок",
+        "Сивенок"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1045",
+      "entity_name": "Проект \"Продолжение следует\"",
+      "entity_type": "project",
+      "role_or_category": "media project",
+      "short_description": "Проект с названием «Продолжение следует».",
+      "descriptors": [
+        "проект"
+      ],
+      "known_projects": [
+        "Продолжение следует"
+      ],
+      "known_domains": [],
+      "common_mentions": [
+        "Продолжение следует"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если контекст указывает на проект, организацию, канал, издание или интернет-ресурс."
+      ],
+      "negative_context_hints": [
+        "Обычное употребление слов из названия без указания на проект или организацию требует осторожной проверки."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1046",
+      "entity_name": "Кротов Марк Яковлевич \"Крутов\"",
+      "entity_type": "person",
+      "role_or_category": "journalist",
+      "short_description": null,
+      "descriptors": [
+        "журналист"
+      ],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Марк Кротов",
+        "Кротов",
+        "Крутов",
+        "Марк Крутов"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1047",
+      "entity_name": "Курмояров Иоанн Валерьевич",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Иоанн Курмояров",
+        "Курмояров"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1048",
+      "entity_name": "Рудников Игорь Петрович",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Игорь Рудников",
+        "Рудников"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1049",
+      "entity_name": "Солонин Марк Семенович",
+      "entity_type": "person",
+      "role_or_category": "historian and writer",
+      "short_description": null,
+      "descriptors": [
+        "историк",
+        "писатель"
+      ],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Марк Солонин",
+        "Солонин"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1050",
+      "entity_name": "\"Револьт-Центр\"",
+      "entity_type": "project",
+      "role_or_category": "project",
+      "short_description": "Проект с названием «Револьт-Центр».",
+      "descriptors": [
+        "проект"
+      ],
+      "known_projects": [
+        "Револьт-Центр"
+      ],
+      "known_domains": [],
+      "common_mentions": [
+        "Револьт-Центр"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если контекст указывает на проект, организацию, канал, издание или интернет-ресурс."
+      ],
+      "negative_context_hints": [
+        "Обычное употребление слов из названия без указания на проект или организацию требует осторожной проверки."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1051",
+      "entity_name": "Дугарова Раджана Дашинимаевна",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Раджана Дугарова",
+        "Дугарова"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1052",
+      "entity_name": "Кордочкин Андрей Борисович",
+      "entity_type": "person",
+      "role_or_category": "priest",
+      "short_description": null,
+      "descriptors": [
+        "священнослужитель"
+      ],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Андрей Кордочкин",
+        "Кордочкин"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    },
+    {
+      "registry_id": "1053",
+      "entity_name": "Марков Сергей Александрович",
+      "entity_type": "person",
+      "role_or_category": "person",
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [
+        "Сергей Марков",
+        "Марков"
+      ],
+      "disambiguation_hints": [
+        "Совпадение сильнее, если рядом есть имя, отчество, известный алиас или профильный контекст из этого профиля."
+      ],
+      "negative_context_hints": [
+        "Фамилия без имени, отчества, алиаса или профильного контекста недостаточна для уверенного совпадения."
+      ],
+      "primary_language": "ru",
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only. Low-confidence batch profile; verify before using for strong conclusions.",
+      "sources": []
+    }
+  ]
+}

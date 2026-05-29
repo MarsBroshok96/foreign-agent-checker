@@ -61,7 +61,14 @@ def test_review_action_prompt_contains_context_profile_data() -> None:
     candidate = state.review_candidates[0]
     profile = ContextProfile(
         entity_name="Белый Руслан Викторович",
+        role_or_category="actor",
+        short_description="Российский актер и комик.",
         descriptors=["актер"],
+        disambiguation_hints=["Публичные упоминания часто содержат имя Руслан."],
+        negative_context_hints=["Белый дом не является упоминанием человека."],
+        primary_language="ru",
+        confidence="High",
+        sources=["https://example.test/profile"],
     )
 
     prompt = build_review_action_prompt(
@@ -73,6 +80,13 @@ def test_review_action_prompt_contains_context_profile_data() -> None:
     )
 
     assert "актер" in prompt
+    assert "role_or_category: actor" in prompt
+    assert "Российский актер и комик." in prompt
+    assert "Публичные упоминания часто содержат имя Руслан." in prompt
+    assert "Белый дом не является упоминанием человека." in prompt
+    assert "primary_language: ru" in prompt
+    assert "confidence: high" in prompt
+    assert "https://example.test/profile" in prompt
 
 
 def test_review_action_prompt_states_boundaries_and_json_only() -> None:

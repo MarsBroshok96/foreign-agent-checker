@@ -1,4 +1,4 @@
-.PHONY: help install test lint format check run run-deterministic run-agentic run-json run-local run-local-json clean
+.PHONY: help install test lint format check run run-deterministic run-agentic run-json run-local run-local-json validate-profiles profile-coverage clean
 
 URL ?= https://www.rambler.ru/example
 REGISTRY_PATH ?= data/samples/registries/minjust_export_sample.xlsx
@@ -16,6 +16,8 @@ help:
 	@echo "  run-json  Run deterministic mode with JSON output"
 	@echo "  run-local Run CLI with local registry XLSX"
 	@echo "  run-local-json Run CLI with local registry XLSX and JSON output"
+	@echo "  validate-profiles Validate example context profiles"
+	@echo "  profile-coverage Show registry/profile coverage for local snapshot"
 	@echo "  clean     Remove caches"
 
 install:
@@ -49,6 +51,12 @@ run-local:
 
 run-local-json:
 	poetry run fa-checker "$(URL)" --mode deterministic --registry-path "$(REGISTRY_PATH)" --output-format json
+
+validate-profiles:
+	poetry run python scripts/validate_context_profiles.py data/context/context_profiles.json --registry-xlsx data/registry/minjust_registry_latest.xlsx
+
+profile-coverage:
+	poetry run python scripts/profile_coverage.py data/registry/minjust_registry_latest.xlsx data/context/context_profiles.json --limit 50
 
 clean:
 	rm -rf .pytest_cache .ruff_cache

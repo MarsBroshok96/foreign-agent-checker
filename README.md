@@ -88,9 +88,25 @@ deterministic.
 
 ```bash
 poetry run fa-checker "URL" --mode agentic
-poetry run fa-checker "URL" --mode agentic --context-profiles-path data/context/context_profiles.example.json
+poetry run fa-checker "URL" --mode agentic --context-profiles-path data/context/context_profiles.json
 poetry run fa-checker "URL" --registry-path data/samples/registries/minjust_export_sample.xlsx
 ```
+
+## Context Profiles
+
+Context profiles are optional auxiliary data for disambiguation. They are not a
+source of foreign-agent status, and the runtime agent does not browse the
+internet.
+
+Profiles can be enriched offline by a developer or Codex-assisted workflow.
+Useful developer commands:
+
+```bash
+poetry run python scripts/validate_context_profiles.py data/context/context_profiles.json --registry-xlsx data/registry/minjust_registry_latest.xlsx
+poetry run python scripts/profile_coverage.py data/registry/minjust_registry_latest.xlsx data/context/context_profiles.json --limit 50
+```
+
+See [docs/context_profile_enrichment_skill.md](docs/context_profile_enrichment_skill.md).
 
 ## Test
 ```bash

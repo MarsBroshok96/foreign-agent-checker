@@ -1,5 +1,6 @@
 import json
 from datetime import UTC, datetime
+from pathlib import Path
 
 from openpyxl import Workbook
 from typer.testing import CliRunner
@@ -158,6 +159,43 @@ def test_cli_agentic_mode_loads_context_profiles(monkeypatch, tmp_path) -> None:
 
     assert result.exit_code == 0
     assert calls["path"] == context_profiles_path
+    assert calls["context_profiles"] is profiles
+
+
+def test_cli_agentic_mode_uses_enriched_context_profiles_by_default(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    registry_path = tmp_path / "registry.xlsx"
+    write_registry_xlsx(registry_path)
+    calls = {}
+    profiles = []
+    monkeypatch.setattr(cli, "load_rambler_article", lambda url: make_article())
+
+    def fake_load_context_profiles(path):
+        calls["path"] = path
+        return profiles
+
+    def fake_run_agentic_review_check(article, registry_entries, context_profiles=None):
+        calls["context_profiles"] = context_profiles
+        return make_agentic_report()
+
+    monkeypatch.setattr(cli, "load_context_profiles", fake_load_context_profiles)
+    monkeypatch.setattr(cli, "run_agentic_review_check", fake_run_agentic_review_check)
+
+    result = CliRunner().invoke(
+        app,
+        [
+            "https://www.rambler.ru/news/example",
+            "--mode",
+            "agentic",
+            "--registry-path",
+            str(registry_path),
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert calls["path"] == Path("data/context/context_profiles.json")
     assert calls["context_profiles"] is profiles
 
 

@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ValidationError, field_validator
 
 from fa_checker.article.normalizer import normalize_for_matching
 
@@ -13,12 +13,29 @@ class ContextProfile(BaseModel):
     registry_id: str | None = None
     entity_name: str
     entity_type: str | None = None
+    role_or_category: str | None = None
+    short_description: str | None = None
     descriptors: list[str] = Field(default_factory=list)
     known_projects: list[str] = Field(default_factory=list)
     known_domains: list[str] = Field(default_factory=list)
     common_mentions: list[str] = Field(default_factory=list)
+    disambiguation_hints: list[str] = Field(default_factory=list)
+    negative_context_hints: list[str] = Field(default_factory=list)
+    primary_language: str | None = None
+    confidence: str | None = None
     notes: str | None = None
     sources: list[str] = Field(default_factory=list)
+
+    @field_validator("confidence")
+    @classmethod
+    def validate_confidence(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        normalized = value.strip().lower()
+        if normalized not in {"low", "medium", "high"}:
+            msg = "confidence must be one of: low, medium, high"
+            raise ValueError(msg)
+        return normalized
 
 
 def load_context_profiles(path: str | Path) -> list[ContextProfile]:

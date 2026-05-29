@@ -61,7 +61,9 @@ def test_disambiguation_prompt_contains_article_context() -> None:
 def test_disambiguation_prompt_contains_profile_descriptors() -> None:
     profile = ContextProfile(
         entity_name="Белый Руслан Викторович",
+        short_description="Российский актер и комик.",
         descriptors=["актер", "комик"],
+        negative_context_hints=["Белый дом не является упоминанием человека."],
     )
 
     prompt = build_disambiguation_prompt(
@@ -72,6 +74,8 @@ def test_disambiguation_prompt_contains_profile_descriptors() -> None:
     )
 
     assert "актер, комик" in prompt
+    assert "Российский актер и комик." in prompt
+    assert "Белый дом не является упоминанием человека." in prompt
 
 
 def test_disambiguation_prompt_requires_json_only_output() -> None:

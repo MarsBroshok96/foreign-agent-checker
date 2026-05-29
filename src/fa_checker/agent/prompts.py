@@ -156,11 +156,18 @@ def _context_profile_section(context_profile: ContextProfile | None) -> str:
             "Local context profile (auxiliary only):",
             f"- entity_name: {context_profile.entity_name}",
             f"- entity_type: {context_profile.entity_type}",
+            f"- role_or_category: {context_profile.role_or_category or 'none'}",
+            f"- short_description: {context_profile.short_description or 'none'}",
             f"- descriptors: {_join_or_none(context_profile.descriptors)}",
             f"- known_projects: {_join_or_none(context_profile.known_projects)}",
             f"- known_domains: {_join_or_none(context_profile.known_domains)}",
             f"- common_mentions: {_join_or_none(context_profile.common_mentions)}",
+            f"- disambiguation_hints: {_join_or_none(context_profile.disambiguation_hints)}",
+            f"- negative_context_hints: {_join_or_none(context_profile.negative_context_hints)}",
+            f"- primary_language: {context_profile.primary_language or 'none'}",
+            f"- confidence: {context_profile.confidence or 'none'}",
             f"- notes: {context_profile.notes or 'none'}",
+            f"- sources: {_join_or_none(context_profile.sources)}",
         ]
     )
 

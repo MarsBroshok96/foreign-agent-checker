@@ -1,0 +1,38 @@
+{
+  "profiles": [
+    {
+      "registry_id": "REGISTRY_ID_FROM_SNAPSHOT",
+      "entity_name": "Exact entity name from registry",
+      "entity_type": "person",
+      "role_or_category": null,
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [],
+      "disambiguation_hints": [],
+      "negative_context_hints": [],
+      "primary_language": null,
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only.",
+      "sources": []
+    },
+    {
+      "registry_id": "ANOTHER_REGISTRY_ID",
+      "entity_name": "Another exact entity name from registry",
+      "entity_type": "project",
+      "role_or_category": null,
+      "short_description": null,
+      "descriptors": [],
+      "known_projects": [],
+      "known_domains": [],
+      "common_mentions": [],
+      "disambiguation_hints": [],
+      "negative_context_hints": [],
+      "primary_language": null,
+      "confidence": "low",
+      "notes": "Auxiliary context for disambiguation only.",
+      "sources": []
+    }
+  ]
+}
