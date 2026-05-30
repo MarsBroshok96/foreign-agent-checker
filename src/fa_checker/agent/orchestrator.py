@@ -15,19 +15,17 @@ from fa_checker.agent.tools import (
 )
 from fa_checker.domain.enums import (
     DisambiguationDecision,
-    FindingStatus,
     MatchType,
-    ReportStatus,
 )
 from fa_checker.domain.models import (
     Article,
     CheckReport,
     DisambiguationResult,
     FinalFinding,
-    ProcessingSummary,
     RegistryEntry,
 )
 from fa_checker.pipeline import run_deterministic_analysis
+from fa_checker.reporting.summary import build_processing_summary, derive_report_status
 from fa_checker.scoring.risk import score_candidate_match
 
 AGENT_REVIEW_LIMITATION = "Bounded LLM review applied to weak candidates."
@@ -105,19 +103,32 @@ def run_bounded_review_check(
         article_author=article.author,
         checked_at=datetime.now(UTC),
         registry_snapshot_date=analysis.registry_snapshot_date,
-        status=_derive_report_status(
+        status=derive_report_status(
             final_findings,
-            analysis.resource_link_matches,
-            analysis.author_check,
+            author_check=analysis.author_check,
+            resource_link_matches=analysis.resource_link_matches,
         ),
         findings=final_findings,
         resource_link_matches=analysis.resource_link_matches,
         author_check=analysis.author_check,
         limitations=_dedupe_limitations(limitations),
-        processing_summary=_build_agentic_processing_summary(
-            analysis=analysis,
+        processing_summary=build_processing_summary(
+            mode="agentic",
+            deterministic_candidates_total=len(analysis.candidates),
+            deterministic_strong_candidates=analysis.strong_candidates_count,
+            deterministic_weak_candidates=analysis.weak_candidates_count,
+            deterministic_fuzzy_candidates=sum(
+                candidate.match_type == MatchType.FUZZY for candidate in analysis.candidates
+            ),
+            fuzzy_enabled=_analysis_fuzzy_enabled(analysis),
+            deterministic_findings=analysis.findings,
             final_findings=final_findings,
-            reviewed_candidate_indexes=reviewed_candidate_indexes,
+            author_check=analysis.author_check,
+            resource_link_matches=analysis.resource_link_matches,
+            agentic_review_applied=bool(analysis.requires_agent_review),
+            agentic_review_candidates_total=analysis.weak_candidates_count,
+            agentic_reviewed_candidates=len(reviewed_candidate_indexes),
+            agentic_reviewed_candidate_indexes=set(reviewed_candidate_indexes),
         ),
     )
 
@@ -337,100 +348,9 @@ def _rescore_with_disambiguation(
     return final_findings
 
 
-def _derive_report_status(
-    findings: list[FinalFinding],
-    resource_link_matches=None,
-    author_check=None,
-) -> ReportStatus:
-    if any(finding.status == FindingStatus.CONFIRMED for finding in findings):
-        return ReportStatus.CONFIRMED_MATCH_FOUND
-    if resource_link_matches:
-        return ReportStatus.CONFIRMED_MATCH_FOUND
-    if author_check is not None and author_check.status == "strong_match":
-        return ReportStatus.CONFIRMED_MATCH_FOUND
-    if any(
-        finding.status in {FindingStatus.PROBABLE, FindingStatus.UNCERTAIN}
-        for finding in findings
-    ):
-        return ReportStatus.POTENTIAL_MATCH_FOUND
-    if author_check is not None and author_check.status == "weak_match":
-        return ReportStatus.POTENTIAL_MATCH_FOUND
-    return ReportStatus.NO_MATCH
-
-
 def _dedupe_limitations(limitations: list[str]) -> list[str]:
     deduped: list[str] = []
     for limitation in limitations:
         if limitation not in deduped:
             deduped.append(limitation)
     return deduped
-
-
-def _build_agentic_processing_summary(
-    analysis,
-    final_findings: list[FinalFinding],
-    reviewed_candidate_indexes: list[int],
-) -> ProcessingSummary:
-    reviewed_findings = [
-        final_findings[index]
-        for index in reviewed_candidate_indexes
-        if index < len(final_findings)
-    ]
-    return ProcessingSummary(
-        mode="agentic",
-        deterministic_candidates_total=len(analysis.candidates),
-        deterministic_strong_candidates=analysis.strong_candidates_count,
-        deterministic_weak_candidates=analysis.weak_candidates_count,
-        deterministic_fuzzy_candidates=sum(
-            candidate.match_type == MatchType.FUZZY for candidate in analysis.candidates
-        ),
-        fuzzy_enabled=(
-            analysis.base_report.processing_summary.fuzzy_enabled
-            if analysis.base_report.processing_summary is not None
-            else False
-        ),
-        deterministic_confirmed_findings=analysis.confirmed_findings_count,
-        deterministic_probable_findings=analysis.probable_findings_count,
-        deterministic_uncertain_findings=analysis.uncertain_findings_count,
-        deterministic_rejected_findings=analysis.rejected_findings_count,
-        agentic_review_applied=bool(analysis.requires_agent_review),
-        agentic_review_candidates_total=analysis.weak_candidates_count,
-        agentic_reviewed_candidates=len(reviewed_candidate_indexes),
-        agentic_confirmed_after_review=_count_findings(
-            reviewed_findings,
-            FindingStatus.CONFIRMED,
-        ),
-        agentic_probable_after_review=_count_findings(
-            reviewed_findings,
-            FindingStatus.PROBABLE,
-        ),
-        agentic_uncertain_after_review=_count_findings(
-            reviewed_findings,
-            FindingStatus.UNCERTAIN,
-        ),
-        agentic_rejected_after_review=_count_findings(
-            reviewed_findings,
-            FindingStatus.REJECTED,
-        ),
-        final_findings_total=len(final_findings),
-        final_confirmed_findings=_count_findings(final_findings, FindingStatus.CONFIRMED),
-        final_probable_findings=_count_findings(final_findings, FindingStatus.PROBABLE),
-        final_uncertain_findings=_count_findings(final_findings, FindingStatus.UNCERTAIN),
-        final_rejected_findings=_count_findings(final_findings, FindingStatus.REJECTED),
-        final_requires_human_review=sum(
-            finding.requires_human_review for finding in final_findings
-        ),
-        resource_link_matches_total=len(analysis.resource_link_matches),
-        author_check_status=(
-            analysis.author_check.status if analysis.author_check is not None else None
-        ),
-        author_requires_human_review=(
-            analysis.author_check.requires_human_review
-            if analysis.author_check is not None
-            else False
-        ),
-    )
-
-
-def _count_findings(findings: list[FinalFinding], status: FindingStatus) -> int:
-    return sum(finding.status == status for finding in findings)

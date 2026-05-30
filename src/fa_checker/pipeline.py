@@ -4,7 +4,7 @@ from datetime import UTC, date, datetime
 
 from fa_checker.agent.context_profiles import ContextProfile
 from fa_checker.agent.state import DeterministicAnalysisResult
-from fa_checker.domain.enums import FindingStatus, MatchType, ReportStatus
+from fa_checker.domain.enums import MatchType
 from fa_checker.domain.models import (
     Article,
     AuthorCheckResult,
@@ -19,6 +19,11 @@ from fa_checker.matching.exact import find_exact_matches
 from fa_checker.matching.fuzzy import find_fuzzy_person_matches
 from fa_checker.matching.labels import check_label
 from fa_checker.matching.resource_links import find_resource_link_matches
+from fa_checker.reporting.summary import (
+    build_processing_summary,
+    count_findings,
+    derive_report_status,
+)
 from fa_checker.scoring.risk import ScoringInput, score_candidate_matches
 
 OFFLINE_LIMITATION = (
@@ -60,18 +65,33 @@ def run_deterministic_analysis(
     resource_link_matches = find_resource_link_matches(article, registry_entries)
     author_check = check_article_author(article, registry_entries)
     registry_snapshot_date = _get_registry_snapshot_date(registry_entries)
+    strong_candidates_count = sum(
+        not candidate.requires_disambiguation for candidate in candidates
+    )
+    weak_candidates_count = sum(
+        candidate.requires_disambiguation for candidate in candidates
+    )
+    deterministic_fuzzy_candidates = sum(
+        candidate.match_type == MatchType.FUZZY for candidate in candidates
+    )
+    finding_counts = count_findings(findings)
     base_report = _build_check_report(
         article=article,
         registry_snapshot_date=registry_snapshot_date,
         findings=findings,
         resource_link_matches=resource_link_matches,
         author_check=author_check,
-        processing_summary=_build_deterministic_processing_summary(
-            candidates=candidates,
-            findings=findings,
+        processing_summary=build_processing_summary(
+            mode="deterministic",
+            deterministic_candidates_total=len(candidates),
+            deterministic_strong_candidates=strong_candidates_count,
+            deterministic_weak_candidates=weak_candidates_count,
+            deterministic_fuzzy_candidates=deterministic_fuzzy_candidates,
+            fuzzy_enabled=enable_fuzzy,
+            deterministic_findings=findings,
+            final_findings=findings,
             resource_link_matches=resource_link_matches,
             author_check=author_check,
-            fuzzy_enabled=enable_fuzzy,
         ),
     )
 
@@ -84,16 +104,12 @@ def run_deterministic_analysis(
         author_check=author_check,
         findings=findings,
         base_report=base_report,
-        strong_candidates_count=sum(
-            not candidate.requires_disambiguation for candidate in candidates
-        ),
-        weak_candidates_count=sum(
-            candidate.requires_disambiguation for candidate in candidates
-        ),
-        confirmed_findings_count=_count_findings(findings, FindingStatus.CONFIRMED),
-        probable_findings_count=_count_findings(findings, FindingStatus.PROBABLE),
-        uncertain_findings_count=_count_findings(findings, FindingStatus.UNCERTAIN),
-        rejected_findings_count=_count_findings(findings, FindingStatus.REJECTED),
+        strong_candidates_count=strong_candidates_count,
+        weak_candidates_count=weak_candidates_count,
+        confirmed_findings_count=finding_counts["confirmed"],
+        probable_findings_count=finding_counts["probable"],
+        uncertain_findings_count=finding_counts["uncertain"],
+        rejected_findings_count=finding_counts["rejected"],
         requires_agent_review=any(candidate.requires_disambiguation for candidate in candidates),
         limitations=[_offline_limitation(enable_fuzzy)],
     )
@@ -144,7 +160,11 @@ def _build_check_report(
         article_author=article.author,
         checked_at=datetime.now(UTC),
         registry_snapshot_date=registry_snapshot_date,
-        status=_derive_report_status(findings, link_matches, author_check),
+        status=derive_report_status(
+            findings,
+            author_check=author_check,
+            resource_link_matches=link_matches,
+        ),
         findings=findings,
         resource_link_matches=link_matches,
         author_check=author_check,
@@ -156,75 +176,6 @@ def _build_check_report(
             )
         ],
         processing_summary=processing_summary,
-    )
-
-
-def _derive_report_status(
-    findings: list[FinalFinding],
-    resource_link_matches: list[ResourceLinkMatch] | None = None,
-    author_check: AuthorCheckResult | None = None,
-) -> ReportStatus:
-    if any(finding.status == FindingStatus.CONFIRMED for finding in findings):
-        return ReportStatus.CONFIRMED_MATCH_FOUND
-    if resource_link_matches:
-        return ReportStatus.CONFIRMED_MATCH_FOUND
-    if author_check is not None and author_check.status == "strong_match":
-        return ReportStatus.CONFIRMED_MATCH_FOUND
-    if any(
-        finding.status in {FindingStatus.PROBABLE, FindingStatus.UNCERTAIN}
-        for finding in findings
-    ):
-        return ReportStatus.POTENTIAL_MATCH_FOUND
-    if author_check is not None and author_check.status == "weak_match":
-        return ReportStatus.POTENTIAL_MATCH_FOUND
-    return ReportStatus.NO_MATCH
-
-
-def _count_findings(findings: list[FinalFinding], status: FindingStatus) -> int:
-    return sum(finding.status == status for finding in findings)
-
-
-def _build_deterministic_processing_summary(
-    candidates,
-    findings: list[FinalFinding],
-    resource_link_matches: list[ResourceLinkMatch] | None = None,
-    author_check: AuthorCheckResult | None = None,
-    fuzzy_enabled: bool = False,
-) -> ProcessingSummary:
-    confirmed = _count_findings(findings, FindingStatus.CONFIRMED)
-    probable = _count_findings(findings, FindingStatus.PROBABLE)
-    uncertain = _count_findings(findings, FindingStatus.UNCERTAIN)
-    rejected = _count_findings(findings, FindingStatus.REJECTED)
-    return ProcessingSummary(
-        mode="deterministic",
-        deterministic_candidates_total=len(candidates),
-        deterministic_strong_candidates=sum(
-            not candidate.requires_disambiguation for candidate in candidates
-        ),
-        deterministic_weak_candidates=sum(
-            candidate.requires_disambiguation for candidate in candidates
-        ),
-        deterministic_fuzzy_candidates=sum(
-            candidate.match_type == MatchType.FUZZY for candidate in candidates
-        ),
-        fuzzy_enabled=fuzzy_enabled,
-        deterministic_confirmed_findings=confirmed,
-        deterministic_probable_findings=probable,
-        deterministic_uncertain_findings=uncertain,
-        deterministic_rejected_findings=rejected,
-        final_findings_total=len(findings),
-        final_confirmed_findings=confirmed,
-        final_probable_findings=probable,
-        final_uncertain_findings=uncertain,
-        final_rejected_findings=rejected,
-        final_requires_human_review=sum(
-            finding.requires_human_review for finding in findings
-        ),
-        resource_link_matches_total=len(resource_link_matches or []),
-        author_check_status=author_check.status if author_check is not None else None,
-        author_requires_human_review=(
-            author_check.requires_human_review if author_check is not None else False
-        ),
     )
 
 
