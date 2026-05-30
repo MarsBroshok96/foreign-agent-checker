@@ -1,0 +1,741 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "strong_person_name_match",
+      "description": "Strong name-surname alias should produce confirmed match.",
+      "mode": "deterministic",
+      "enable_fuzzy": false,
+      "article": {
+        "title": "Eval case",
+        "url": "https://news.rambler.ru/eval/strong-person-name",
+        "source_domain": "news.rambler.ru",
+        "author": "Обычный Автор",
+        "text": "Илья Варламов, признан иностранным агентом, прокомментировал ситуацию.",
+        "links": []
+      },
+      "registry_entries": [
+        {
+          "registry_id": "560",
+          "full_name": "Варламов Илья Александрович",
+          "entity_type": "person",
+          "aliases": [],
+          "raw_fields": {}
+        }
+      ],
+      "context_profiles": [],
+      "expected": {
+        "status": "confirmed_match_found",
+        "confirmed_count": 1,
+        "human_review_count": 0,
+        "must_have_findings": [
+          {
+            "entity_name": "Варламов Илья Александрович",
+            "status": "confirmed",
+            "match_type": "exact",
+            "requires_human_review": false
+          }
+        ]
+      },
+      "acceptable": {},
+      "dangerous": {
+        "forbid_statuses": ["no_match"],
+        "forbid_confirmed_without_expected_entity": true
+      }
+    },
+    {
+      "id": "weak_surname_only_match",
+      "description": "Surname-only alias should remain a weak candidate.",
+      "mode": "deterministic",
+      "enable_fuzzy": false,
+      "article": {
+        "title": "Eval case",
+        "url": "https://news.rambler.ru/eval/weak-surname",
+        "source_domain": "news.rambler.ru",
+        "author": "Обычный Автор",
+        "text": "Варламов прокомментировал ситуацию.",
+        "links": []
+      },
+      "registry_entries": [
+        {
+          "registry_id": "560",
+          "full_name": "Варламов Илья Александрович",
+          "entity_type": "person",
+          "aliases": [],
+          "raw_fields": {}
+        }
+      ],
+      "expected": {
+        "status": "potential_match_found",
+        "uncertain_count": 1,
+        "human_review_count": 1,
+        "must_have_findings": [
+          {
+            "entity_name": "Варламов Илья Александрович",
+            "status": "uncertain",
+            "match_type": "alias",
+            "requires_human_review": true
+          }
+        ]
+      },
+      "dangerous": {
+        "forbid_statuses": ["no_match"],
+        "forbid_finding_statuses_without_human_review": ["confirmed", "probable"]
+      }
+    },
+    {
+      "id": "false_positive_white_house",
+      "description": "Agentic review should reject White House phrase false positive.",
+      "mode": "agentic",
+      "enable_fuzzy": false,
+      "article": {
+        "title": "Eval case",
+        "url": "https://news.rambler.ru/eval/white-house",
+        "source_domain": "news.rambler.ru",
+        "author": "Обычный Автор",
+        "text": "Белый дом выступил с заявлением после встречи.",
+        "links": []
+      },
+      "registry_entries": [
+        {
+          "registry_id": "bely-ruslan",
+          "full_name": "Белый Руслан Викторович",
+          "entity_type": "person",
+          "aliases": [],
+          "raw_fields": {}
+        }
+      ],
+      "context_profiles": [
+        {
+          "registry_id": "bely-ruslan",
+          "entity_name": "Белый Руслан Викторович",
+          "entity_type": "person",
+          "descriptors": ["комик", "артист", "телеведущий"],
+          "common_mentions": ["Руслан Белый", "Белый"],
+          "negative_context_hints": ["Фраза 'Белый дом' обычно указывает на институцию или место."]
+        }
+      ],
+      "expected": {
+        "status": "no_match",
+        "rejected_count": 1,
+        "human_review_count": 0,
+        "must_have_findings": [
+          {
+            "entity_name": "Белый Руслан Викторович",
+            "status": "rejected",
+            "requires_human_review": false
+          }
+        ]
+      },
+      "acceptable": {
+        "statuses": ["potential_match_found"],
+        "allow_uncertain_human_review": true,
+        "must_not_have_finding_statuses": ["confirmed", "probable"]
+      },
+      "dangerous": {
+        "forbid_finding_statuses_without_human_review": ["confirmed", "probable"]
+      }
+    },
+    {
+      "id": "false_positive_after_rain",
+      "description": "Agentic review should reject common word usage for project alias.",
+      "mode": "agentic",
+      "enable_fuzzy": false,
+      "article": {
+        "title": "Eval case",
+        "url": "https://news.rambler.ru/eval/after-rain",
+        "source_domain": "news.rambler.ru",
+        "author": "Обычный Автор",
+        "text": "После дождя движение на дорогах осложнилось.",
+        "links": []
+      },
+      "registry_entries": [
+        {
+          "registry_id": "posle-project",
+          "full_name": "Проект «После»",
+          "entity_type": "project",
+          "aliases": ["После"],
+          "raw_fields": {}
+        }
+      ],
+      "context_profiles": [
+        {
+          "registry_id": "posle-project",
+          "entity_name": "Проект «После»",
+          "entity_type": "project",
+          "descriptors": ["медиа-проект"],
+          "known_domains": ["posle.media"],
+          "common_mentions": ["После"],
+          "negative_context_hints": ["Фраза 'после дождя' является обычным употреблением слова."]
+        }
+      ],
+      "expected": {
+        "status": "no_match",
+        "rejected_count": 1,
+        "must_have_findings": [
+          {
+            "entity_name": "Проект «После»",
+            "status": "rejected",
+            "requires_human_review": false
+          }
+        ]
+      },
+      "acceptable": {
+        "statuses": ["potential_match_found"],
+        "allow_uncertain_human_review": true,
+        "must_not_have_finding_statuses": ["confirmed", "probable"]
+      },
+      "dangerous": {
+        "forbid_finding_statuses_without_human_review": ["confirmed", "probable"]
+      }
+    },
+    {
+      "id": "true_positive_after_media_project",
+      "description": "Project mention in media context should not be rejected.",
+      "mode": "agentic",
+      "enable_fuzzy": false,
+      "article": {
+        "title": "Eval case",
+        "url": "https://news.rambler.ru/eval/posle-media",
+        "source_domain": "news.rambler.ru",
+        "author": "Обычный Автор",
+        "text": "Издание После опубликовало новый материал.",
+        "links": []
+      },
+      "registry_entries": [
+        {
+          "registry_id": "posle-project",
+          "full_name": "Проект «После»",
+          "entity_type": "project",
+          "aliases": ["После"],
+          "raw_fields": {}
+        }
+      ],
+      "context_profiles": [
+        {
+          "registry_id": "posle-project",
+          "entity_name": "Проект «После»",
+          "entity_type": "project",
+          "descriptors": ["медиа-проект"],
+          "known_domains": ["posle.media"],
+          "common_mentions": ["После"],
+          "disambiguation_hints": ["Слова 'издание' и 'опубликовало' поддерживают media/project interpretation."]
+        }
+      ],
+      "expected": {
+        "statuses": ["confirmed_match_found", "potential_match_found"],
+        "must_not_have_findings": [
+          {
+            "entity_name": "Проект «После»",
+            "status": "rejected"
+          }
+        ]
+      },
+      "acceptable": {
+        "statuses": ["potential_match_found"],
+        "allow_uncertain_human_review": true
+      },
+      "dangerous": {
+        "forbidden_entity_status_pairs": [
+          {
+            "entity_name": "Проект «После»",
+            "status": "rejected"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fuzzy_person_surname_case",
+      "description": "Person-only fuzzy should catch surname case form.",
+      "mode": "deterministic",
+      "enable_fuzzy": true,
+      "article": {
+        "title": "Eval case",
+        "url": "https://news.rambler.ru/eval/fuzzy-varlamova",
+        "source_domain": "news.rambler.ru",
+        "author": "Обычный Автор",
+        "text": "Слова Варламова вызвали дискуссию.",
+        "links": []
+      },
+      "registry_entries": [
+        {
+          "registry_id": "560",
+          "full_name": "Варламов Илья Александрович",
+          "entity_type": "person",
+          "aliases": [],
+          "raw_fields": {}
+        }
+      ],
+      "expected": {
+        "status": "potential_match_found",
+        "uncertain_count": 1,
+        "human_review_count": 1,
+        "deterministic_fuzzy_candidates": 1,
+        "must_have_findings": [
+          {
+            "entity_name": "Варламов Илья Александрович",
+            "status": "uncertain",
+            "match_type": "fuzzy",
+            "requires_human_review": true
+          }
+        ]
+      },
+      "dangerous": {
+        "forbid_statuses": ["no_match"],
+        "forbid_finding_statuses_without_human_review": ["confirmed"]
+      }
+    },
+    {
+      "id": "fuzzy_person_instrumental_case",
+      "description": "Person-only fuzzy should catch instrumental surname form.",
+      "mode": "deterministic",
+      "enable_fuzzy": true,
+      "article": {
+        "title": "Eval case",
+        "url": "https://news.rambler.ru/eval/fuzzy-venediktovym",
+        "source_domain": "news.rambler.ru",
+        "author": "Обычный Автор",
+        "text": "С Венедиктовым обсудили ситуацию на рынке медиа.",
+        "links": []
+      },
+      "registry_entries": [
+        {
+          "registry_id": "venediktov",
+          "full_name": "Венедиктов Алексей Алексеевич",
+          "entity_type": "person",
+          "aliases": [],
+          "raw_fields": {}
+        }
+      ],
+      "expected": {
+        "status": "potential_match_found",
+        "deterministic_fuzzy_candidates": 1,
+        "must_have_findings": [
+          {
+            "entity_name": "Венедиктов Алексей Алексеевич",
+            "status": "uncertain",
+            "match_type": "fuzzy",
+            "requires_human_review": true
+          }
+        ]
+      },
+      "dangerous": {
+        "forbid_statuses": ["no_match"],
+        "forbid_finding_statuses_without_human_review": ["confirmed"]
+      }
+    },
+    {
+      "id": "fuzzy_person_multi_token_case",
+      "description": "Person-only fuzzy should catch two-token declined mention.",
+      "mode": "deterministic",
+      "enable_fuzzy": true,
+      "article": {
+        "title": "Eval case",
+        "url": "https://news.rambler.ru/eval/fuzzy-ilyu-varlamova",
+        "source_domain": "news.rambler.ru",
+        "author": "Обычный Автор",
+        "text": "Илью Варламова спросили о проекте благоустройства.",
+        "links": []
+      },
+      "registry_entries": [
+        {
+          "registry_id": "560",
+          "full_name": "Варламов Илья Александрович",
+          "entity_type": "person",
+          "aliases": [],
+          "raw_fields": {}
+        }
+      ],
+      "expected": {
+        "status": "potential_match_found",
+        "deterministic_fuzzy_candidates": 1,
+        "must_have_findings": [
+          {
+            "entity_name": "Варламов Илья Александрович",
+            "match_type": "fuzzy",
+            "requires_human_review": true
+          }
+        ]
+      },
+      "dangerous": {
+        "forbid_statuses": ["no_match"],
+        "forbid_finding_statuses_without_human_review": ["confirmed"]
+      }
+    },
+    {
+      "id": "fuzzy_safety_project_excluded",
+      "description": "Fuzzy should not process project aliases.",
+      "mode": "deterministic",
+      "enable_fuzzy": true,
+      "article": {
+        "title": "Eval case",
+        "url": "https://news.rambler.ru/eval/fuzzy-project-safety",
+        "source_domain": "news.rambler.ru",
+        "author": "Обычный Автор",
+        "text": "После дождя случилось событие.",
+        "links": []
+      },
+      "registry_entries": [
+        {
+          "registry_id": "posle-project",
+          "full_name": "Проект «После»",
+          "entity_type": "project",
+          "aliases": ["После"],
+          "raw_fields": {}
+        }
+      ],
+      "expected": {
+        "deterministic_fuzzy_candidates": 0,
+        "must_not_have_findings": [
+          {
+            "entity_name": "Проект «После»",
+            "match_type": "fuzzy"
+          }
+        ]
+      },
+      "dangerous": {
+        "forbid_finding_statuses_without_human_review": ["confirmed"]
+      }
+    },
+    {
+      "id": "fuzzy_safety_short_person_alias",
+      "description": "Fuzzy should not add short one-token alias matches.",
+      "mode": "deterministic",
+      "enable_fuzzy": true,
+      "article": {
+        "title": "Eval case",
+        "url": "https://news.rambler.ru/eval/fuzzy-short-alias",
+        "source_domain": "news.rambler.ru",
+        "author": "Обычный Автор",
+        "text": "Белый дом сделал заявление.",
+        "links": []
+      },
+      "registry_entries": [
+        {
+          "registry_id": "bely-ruslan",
+          "full_name": "Белый Руслан Викторович",
+          "entity_type": "person",
+          "aliases": [],
+          "raw_fields": {}
+        }
+      ],
+      "expected": {
+        "deterministic_fuzzy_candidates": 0,
+        "must_not_have_findings": [
+          {
+            "entity_name": "Белый Руслан Викторович",
+            "match_type": "fuzzy"
+          }
+        ]
+      },
+      "dangerous": {
+        "forbid_finding_statuses_without_human_review": ["confirmed"]
+      }
+    },
+    {
+      "id": "author_strong_match",
+      "description": "Article author exact strong alias should set confirmed status.",
+      "mode": "deterministic",
+      "enable_fuzzy": false,
+      "article": {
+        "title": "Eval case",
+        "url": "https://news.rambler.ru/eval/author-strong",
+        "source_domain": "news.rambler.ru",
+        "author": "Илья Варламов",
+        "text": "В статье нет текстовых упоминаний.",
+        "links": []
+      },
+      "registry_entries": [
+        {
+          "registry_id": "560",
+          "full_name": "Варламов Илья Александрович",
+          "entity_type": "person",
+          "aliases": [],
+          "raw_fields": {}
+        }
+      ],
+      "expected": {
+        "status": "confirmed_match_found",
+        "author_check_status": "strong_match"
+      },
+      "dangerous": {
+        "forbid_statuses": ["no_match"]
+      }
+    },
+    {
+      "id": "author_weak_match",
+      "description": "Article author weak surname alias should require human review.",
+      "mode": "deterministic",
+      "enable_fuzzy": false,
+      "article": {
+        "title": "Eval case",
+        "url": "https://news.rambler.ru/eval/author-weak",
+        "source_domain": "news.rambler.ru",
+        "author": "Варламов",
+        "text": "В статье нет текстовых упоминаний.",
+        "links": []
+      },
+      "registry_entries": [
+        {
+          "registry_id": "560",
+          "full_name": "Варламов Илья Александрович",
+          "entity_type": "person",
+          "aliases": [],
+          "raw_fields": {}
+        }
+      ],
+      "expected": {
+        "status": "potential_match_found",
+        "author_check_status": "weak_match"
+      },
+      "dangerous": {
+        "forbid_statuses": ["confirmed_match_found"]
+      }
+    },
+    {
+      "id": "author_no_match",
+      "description": "Unrelated article author should not match registry.",
+      "mode": "deterministic",
+      "enable_fuzzy": false,
+      "article": {
+        "title": "Eval case",
+        "url": "https://news.rambler.ru/eval/author-no-match",
+        "source_domain": "news.rambler.ru",
+        "author": "Андрей Дуванов",
+        "text": "В статье нет текстовых упоминаний.",
+        "links": []
+      },
+      "registry_entries": [
+        {
+          "registry_id": "560",
+          "full_name": "Варламов Илья Александрович",
+          "entity_type": "person",
+          "aliases": [],
+          "raw_fields": {}
+        }
+      ],
+      "expected": {
+        "status": "no_match",
+        "author_check_status": "no_match"
+      },
+      "dangerous": {
+        "forbid_statuses": ["confirmed_match_found", "potential_match_found"]
+      }
+    },
+    {
+      "id": "resource_link_full_match",
+      "description": "Full article link should match full registry resource URL.",
+      "mode": "deterministic",
+      "enable_fuzzy": false,
+      "article": {
+        "title": "Eval case",
+        "url": "https://news.rambler.ru/eval/resource-link",
+        "source_domain": "news.rambler.ru",
+        "author": "Обычный Автор",
+        "text": "В статье есть ссылка на источник.",
+        "links": ["https://posle.media/"]
+      },
+      "registry_entries": [
+        {
+          "registry_id": "posle-project",
+          "full_name": "Проект «После»",
+          "entity_type": "project",
+          "aliases": ["После"],
+          "raw_fields": {
+            "resource_urls": ["https://posle.media/"]
+          }
+        }
+      ],
+      "expected": {
+        "status": "confirmed_match_found",
+        "resource_link_matches_count": 1
+      },
+      "dangerous": {
+        "forbid_statuses": ["no_match"]
+      }
+    },
+    {
+      "id": "resource_link_domain_only_no_match",
+      "description": "Generic platform domain should not match by domain alone.",
+      "mode": "deterministic",
+      "enable_fuzzy": false,
+      "article": {
+        "title": "Eval case",
+        "url": "https://news.rambler.ru/eval/resource-domain-only",
+        "source_domain": "news.rambler.ru",
+        "author": "Обычный Автор",
+        "text": "В статье есть ссылка на Telegram.",
+        "links": ["https://t.me/other"]
+      },
+      "registry_entries": [
+        {
+          "registry_id": "posle-project",
+          "full_name": "Проект «После»",
+          "entity_type": "project",
+          "aliases": ["После"],
+          "raw_fields": {
+            "resource_urls": ["https://t.me/poslemedia"]
+          }
+        }
+      ],
+      "expected": {
+        "status": "no_match",
+        "resource_link_matches_count": 0
+      },
+      "dangerous": {
+        "forbid_statuses": ["confirmed_match_found"]
+      }
+    },
+    {
+      "id": "label_present_near_exact_match",
+      "description": "Nearby label should reduce risk and avoid human review.",
+      "mode": "deterministic",
+      "enable_fuzzy": false,
+      "article": {
+        "title": "Eval case",
+        "url": "https://news.rambler.ru/eval/label-present",
+        "source_domain": "news.rambler.ru",
+        "author": "Обычный Автор",
+        "text": "Илья Варламов, признан иностранным агентом, прокомментировал ситуацию.",
+        "links": []
+      },
+      "registry_entries": [
+        {
+          "registry_id": "560",
+          "full_name": "Варламов Илья Александрович",
+          "entity_type": "person",
+          "aliases": [],
+          "raw_fields": {}
+        }
+      ],
+      "expected": {
+        "status": "confirmed_match_found",
+        "confirmed_count": 1,
+        "human_review_count": 0,
+        "must_have_findings": [
+          {
+            "entity_name": "Варламов Илья Александрович",
+            "label_status": "present",
+            "risk_level": "low",
+            "requires_human_review": false
+          }
+        ]
+      },
+      "dangerous": {
+        "forbid_statuses": ["no_match"]
+      }
+    },
+    {
+      "id": "label_absent_exact_match",
+      "description": "Absent label on exact match should require human review.",
+      "mode": "deterministic",
+      "enable_fuzzy": false,
+      "article": {
+        "title": "Eval case",
+        "url": "https://news.rambler.ru/eval/label-absent",
+        "source_domain": "news.rambler.ru",
+        "author": "Обычный Автор",
+        "text": "Илья Варламов прокомментировал ситуацию.",
+        "links": []
+      },
+      "registry_entries": [
+        {
+          "registry_id": "560",
+          "full_name": "Варламов Илья Александрович",
+          "entity_type": "person",
+          "aliases": [],
+          "raw_fields": {}
+        }
+      ],
+      "expected": {
+        "status": "confirmed_match_found",
+        "confirmed_count": 1,
+        "human_review_count": 1,
+        "must_have_findings": [
+          {
+            "entity_name": "Варламов Илья Александрович",
+            "label_status": "absent",
+            "risk_level": "high",
+            "requires_human_review": true
+          }
+        ]
+      },
+      "dangerous": {
+        "forbid_statuses": ["no_match"]
+      }
+    },
+    {
+      "id": "mixed_strong_and_rejected_weak",
+      "description": "Strong finding should remain while weak false positive is rejected or escalated.",
+      "mode": "agentic",
+      "enable_fuzzy": false,
+      "article": {
+        "title": "Eval case",
+        "url": "https://news.rambler.ru/eval/mixed",
+        "source_domain": "news.rambler.ru",
+        "author": "Обычный Автор",
+        "text": "Илья Варламов, признан иностранным агентом, прокомментировал ситуацию. Позже Белый дом выступил с заявлением.",
+        "links": []
+      },
+      "registry_entries": [
+        {
+          "registry_id": "560",
+          "full_name": "Варламов Илья Александрович",
+          "entity_type": "person",
+          "aliases": [],
+          "raw_fields": {}
+        },
+        {
+          "registry_id": "bely-ruslan",
+          "full_name": "Белый Руслан Викторович",
+          "entity_type": "person",
+          "aliases": [],
+          "raw_fields": {}
+        }
+      ],
+      "context_profiles": [
+        {
+          "registry_id": "bely-ruslan",
+          "entity_name": "Белый Руслан Викторович",
+          "entity_type": "person",
+          "descriptors": ["комик", "артист"],
+          "negative_context_hints": ["Фраза 'Белый дом' обычно указывает на институцию или место."]
+        }
+      ],
+      "expected": {
+        "status": "confirmed_match_found",
+        "confirmed_count": 1,
+        "must_have_findings": [
+          {
+            "entity_name": "Варламов Илья Александрович",
+            "status": "confirmed"
+          }
+        ]
+      },
+      "acceptable": {
+        "statuses": ["confirmed_match_found"],
+        "must_have_findings": [
+          {
+            "entity_name": "Варламов Илья Александрович",
+            "status": "confirmed"
+          },
+          {
+            "entity_name": "Белый Руслан Викторович",
+            "status": "uncertain",
+            "requires_human_review": true
+          }
+        ]
+      },
+      "dangerous": {
+        "required_entities": ["Варламов Илья Александрович"],
+        "forbidden_entity_status_pairs": [
+          {
+            "entity_name": "Белый Руслан Викторович",
+            "status": "confirmed",
+            "requires_human_review": false
+          }
+        ]
+      }
+    }
+  ]
+}

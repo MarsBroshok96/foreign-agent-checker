@@ -4,6 +4,30 @@
 
 Eval set нужен для проверки качества и регрессионной устойчивости решения.
 
+Машиночитаемый eval set находится в:
+
+```text
+tests/eval_cases/basic_eval.json
+```
+
+Лёгкий runner находится в:
+
+```text
+scripts/run_eval.py
+```
+
+Основные команды:
+
+```bash
+make eval-deterministic
+make eval-no-llm
+make eval-agentic
+make eval-all
+```
+
+`eval-deterministic` и `eval-no-llm` не требуют Ollama. Agentic eval запускает
+локальный bounded LLM review и требует работающий Ollama.
+
 Он должен подтвердить, что система корректно обрабатывает:
 
 1. Strong exact matches.

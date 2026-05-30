@@ -149,6 +149,31 @@ The resource-link check compares normalized full URLs only. It does not treat a
 shared domain as a match. Weak author matches remain deterministic human-review
 signals; they are not disambiguated by the LLM in this mode.
 
+## Evaluation
+
+A small machine-readable eval set lives at
+`tests/eval_cases/basic_eval.json`, with a lightweight runner at
+`scripts/run_eval.py`.
+
+Deterministic eval does not require Ollama:
+
+```bash
+make eval-deterministic
+make eval-no-llm
+```
+
+Agentic eval runs the bounded local LLM review path and requires a working
+local Ollama setup:
+
+```bash
+make eval-agentic
+make eval-all
+```
+
+The runner reports `PASS`, `ACCEPTABLE`, `FAIL`, and `DANGEROUS_FAIL`.
+`ACCEPTABLE` is used for agentic cases where conservative uncertainty is allowed.
+Dangerous failures highlight outcomes that would weaken the compliance posture.
+
 ## Test
 ```bash
 make test
