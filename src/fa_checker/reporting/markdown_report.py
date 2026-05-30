@@ -56,6 +56,8 @@ def report_to_markdown(report: CheckReport) -> str:
     lines.extend(_deterministic_summary_lines(report.processing_summary))
     lines.extend(["", "## Agentic review"])
     lines.extend(_agentic_summary_lines(report.processing_summary))
+    lines.extend(["", "## Проверка ссылок в статье"])
+    lines.extend(_resource_link_lines(report))
     lines.extend(["", "## Находки и кандидаты"])
     lines.extend(_grouped_finding_lines(report.findings))
     lines.extend(["", "## Ограничения"])
@@ -74,6 +76,8 @@ def _metadata_lines(report: CheckReport) -> list[str]:
     lines.append(f"- URL статьи: {report.article_url}")
     if report.article_author:
         lines.append(f"- Автор: {report.article_author}")
+    if report.author_check is not None:
+        lines.append(f"- {_author_check_text(report.author_check)}")
     lines.append(f"- Проверено: {_format_optional(report.checked_at)}")
     if report.registry_snapshot_date is not None:
         lines.append(f"- Дата снимка реестра: {_format_optional(report.registry_snapshot_date)}")
@@ -91,6 +95,10 @@ def _executive_summary_lines(report: CheckReport) -> list[str]:
     active_without_review = (
         summary.final_confirmed_findings + summary.final_probable_findings
     )
+    has_non_text_signal = (
+        summary.resource_link_matches_total > 0
+        or summary.author_check_status in {"strong_match", "weak_match"}
+    )
     lines = [
         "После полного цикла проверки:",
         f"- Подтверждено/вероятно найдено: {active_without_review}",
@@ -99,6 +107,16 @@ def _executive_summary_lines(report: CheckReport) -> list[str]:
         f"- Всего кандидатов/находок в отчёте: {summary.final_findings_total}",
         f"- Активные совпадения: {active_without_review}",
     ]
+    if summary.resource_link_matches_total > 0:
+        lines.append(
+            "- Совпадения по полным ссылкам на ресурсы из реестра: "
+            f"{summary.resource_link_matches_total}"
+        )
+    if summary.author_check_status in {"strong_match", "weak_match"}:
+        lines.append(
+            "- Проверка автора: "
+            f"{_author_check_status_text(summary.author_check_status)}"
+        )
     if (
         report.status == ReportStatus.NO_MATCH
         and summary.final_rejected_findings > 0
@@ -108,7 +126,7 @@ def _executive_summary_lines(report: CheckReport) -> list[str]:
             "Активные совпадения с реестром не подтверждены; отклонённые "
             "кандидаты показаны ниже для аудита."
         )
-    if summary.final_findings_total == 0:
+    if summary.final_findings_total == 0 and not has_non_text_signal:
         lines.append("На текущем уровне проверки совпадения с реестром не выявлены.")
     return lines
 
@@ -132,6 +150,8 @@ def _deterministic_summary_lines(summary: ProcessingSummary | None) -> list[str]
         f"- Кандидатов найдено deterministic layer: {summary.deterministic_candidates_total}",
         f"- Сильные совпадения: {summary.deterministic_strong_candidates}",
         f"- Слабые совпадения: {summary.deterministic_weak_candidates}",
+        f"- Совпадения по ссылкам: {summary.resource_link_matches_total}",
+        f"- Статус проверки автора: {_author_check_status_text(summary.author_check_status)}",
         f"- Подтверждено: {summary.deterministic_confirmed_findings}",
         f"- Вероятные совпадения: {summary.deterministic_probable_findings}",
         f"- Неопределённые кандидаты: {summary.deterministic_uncertain_findings}",
@@ -155,9 +175,25 @@ def _agentic_summary_lines(summary: ProcessingSummary | None) -> list[str]:
     ]
 
 
+def _resource_link_lines(report: CheckReport) -> list[str]:
+    if not report.resource_link_matches:
+        return ["Ссылки на ресурсы иностранных агентов в тексте статьи не обнаружены."]
+
+    lines = ["Обнаружены ссылки на ресурсы из реестра:"]
+    for index, match in enumerate(report.resource_link_matches, start=1):
+        lines.extend(
+            [
+                f"{index}. {match.entity_name}",
+                f"   - Ссылка в статье: {match.article_url}",
+                f"   - Ссылка в реестре: {match.registry_url}",
+            ]
+        )
+    return lines
+
+
 def _grouped_finding_lines(findings: list[FinalFinding]) -> list[str]:
     if not findings:
-        return ["На текущем уровне проверки совпадения с реестром не выявлены."]
+        return ["Текстовые упоминания кандидатов в статье не выявлены текущей проверкой."]
 
     active = [
         finding
@@ -364,3 +400,33 @@ def _finding_status_text(status: FindingStatus) -> str:
         FindingStatus.REJECTED: "отклонён",
     }
     return status_text[status]
+
+
+def _author_check_text(author_check) -> str:
+    if author_check.status == "no_author":
+        return "Проверка автора: автор не указан в статье"
+    if author_check.status == "no_match":
+        return "Проверка автора: отсутствует в реестре иностранных агентов"
+    if author_check.status == "strong_match":
+        suffix = f" — {author_check.entity_name}" if author_check.entity_name else ""
+        return (
+            "Проверка автора: присутствует в реестре иностранных агентов"
+            f"{suffix}"
+        )
+    if author_check.status == "weak_match":
+        suffix = f" — {author_check.entity_name}" if author_check.entity_name else ""
+        return (
+            "Проверка автора: есть слабое совпадение с реестром, "
+            f"требуется ручная проверка{suffix}"
+        )
+    return "Проверка автора: не выполнялась"
+
+
+def _author_check_status_text(status: str | None) -> str:
+    status_text = {
+        "no_author": "автор не указан в статье",
+        "no_match": "автор отсутствует в реестре иностранных агентов",
+        "strong_match": "автор присутствует в реестре иностранных агентов",
+        "weak_match": "слабое совпадение автора, требуется ручная проверка",
+    }
+    return status_text.get(status, "не выполнялась")

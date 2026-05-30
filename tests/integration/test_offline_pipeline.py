@@ -12,13 +12,18 @@ from fa_checker.domain.models import Article, RegistryEntry
 from fa_checker.pipeline import run_offline_check
 
 
-def make_article(text: str) -> Article:
+def make_article(
+    text: str,
+    author: str | None = "Reporter",
+    links: list[str] | None = None,
+) -> Article:
     return Article(
         url="https://www.rambler.ru/example",
         source_domain="www.rambler.ru",
         title="Example",
-        author="Reporter",
+        author=author,
         text=text,
+        links=links or [],
     )
 
 
@@ -27,6 +32,7 @@ def make_entry(
     entity_type: EntityType = EntityType.PERSON,
     aliases: list[str] | None = None,
     snapshot_date: date | None = None,
+    raw_fields: dict | None = None,
 ) -> RegistryEntry:
     return RegistryEntry(
         registry_id=full_name,
@@ -36,6 +42,7 @@ def make_entry(
         aliases=aliases or [],
         registry_source_url="https://minjust.gov.ru/registry",
         registry_snapshot_date=snapshot_date,
+        raw_fields=raw_fields or {},
     )
 
 
@@ -163,3 +170,72 @@ def test_run_offline_check_handles_empty_registry() -> None:
     assert report.status == ReportStatus.NO_MATCH
     assert report.findings == []
     assert report.registry_snapshot_date is None
+
+
+def test_run_offline_check_resource_link_match_sets_confirmed_status() -> None:
+    report = run_offline_check(
+        make_article(
+            "В статье нет текстовых упоминаний.",
+            links=["https://posle.media/about"],
+        ),
+        [
+            make_entry(
+                "Проект «После»",
+                entity_type=EntityType.PROJECT,
+                raw_fields={"resource_urls": ["https://posle.media/about/"]},
+            )
+        ],
+    )
+
+    assert report.status == ReportStatus.CONFIRMED_MATCH_FOUND
+    assert len(report.findings) == 0
+    assert len(report.resource_link_matches) == 1
+    assert report.resource_link_matches[0].entity_name == "Проект «После»"
+    assert report.processing_summary is not None
+    assert report.processing_summary.resource_link_matches_total == 1
+
+
+def test_run_offline_check_without_resource_link_match_keeps_empty_link_results() -> None:
+    report = run_offline_check(
+        make_article(
+            "В статье нет текстовых упоминаний.",
+            links=["https://posle.media/other"],
+        ),
+        [
+            make_entry(
+                "Проект «После»",
+                entity_type=EntityType.PROJECT,
+                raw_fields={"resource_urls": ["https://posle.media/about"]},
+            )
+        ],
+    )
+
+    assert report.status == ReportStatus.NO_MATCH
+    assert report.resource_link_matches == []
+
+
+def test_run_offline_check_author_strong_match_sets_confirmed_status() -> None:
+    report = run_offline_check(
+        make_article("В статье нет текстовых упоминаний.", author="Илья Варламов"),
+        [make_entry("Варламов Илья Александрович")],
+    )
+
+    assert report.status == ReportStatus.CONFIRMED_MATCH_FOUND
+    assert report.findings == []
+    assert report.author_check is not None
+    assert report.author_check.status == "strong_match"
+    assert report.processing_summary is not None
+    assert report.processing_summary.author_check_status == "strong_match"
+
+
+def test_run_offline_check_author_weak_match_sets_potential_status() -> None:
+    report = run_offline_check(
+        make_article("В статье нет текстовых упоминаний.", author="Варламов"),
+        [make_entry("Варламов Илья Александрович")],
+    )
+
+    assert report.status == ReportStatus.POTENTIAL_MATCH_FOUND
+    assert report.findings == []
+    assert report.author_check is not None
+    assert report.author_check.status == "weak_match"
+    assert report.author_check.requires_human_review is True

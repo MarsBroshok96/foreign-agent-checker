@@ -96,11 +96,16 @@ def _extract_text(html: str, soup: BeautifulSoup) -> str:
 
 
 def _extract_links(url: str, soup: BeautifulSoup) -> list[str]:
+    articles = soup.find_all("article")
+    if not articles:
+        return []
+
     links: list[str] = []
-    for anchor in soup.find_all("a", href=True):
-        resolved = urljoin(url, anchor["href"])
-        if resolved.startswith(("http://", "https://")) and resolved not in links:
-            links.append(resolved)
+    for article in articles:
+        for anchor in article.find_all("a", href=True):
+            resolved = urljoin(url, anchor["href"])
+            if resolved.startswith(("http://", "https://")) and resolved not in links:
+                links.append(resolved)
     return links
 
 

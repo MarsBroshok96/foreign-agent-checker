@@ -116,6 +116,13 @@ report for auditability.
 When available, the disambiguation rationale from agentic review is shown in
 the final report separately from deterministic risk-scoring rationale.
 
+Author checks and resource-link checks are deterministic side checks. The
+author check compares the article author to registry aliases, and the
+resource-link check compares full article-body URLs to full registry resource
+URLs. These signals can affect the final report status, but they are not sent to
+the LLM review loop in the current MVP. Agentic review remains limited to weak
+text candidates.
+
 The runtime agent does not browse the internet.
 
 # Available tools

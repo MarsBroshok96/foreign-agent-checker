@@ -111,6 +111,28 @@ class LabelCheckResult(BaseModel):
     label_quality: LabelQuality
 
 
+class ResourceLinkMatch(BaseModel):
+    registry_id: str | None = None
+    entity_name: str
+    entity_type: str | None = None
+    article_url: str
+    registry_url: str
+    normalized_article_url: str
+    normalized_registry_url: str
+    rationale: str = "Article contains a full link matching a registry resource URL."
+
+
+class AuthorCheckResult(BaseModel):
+    author_name: str | None = None
+    status: str
+    registry_id: str | None = None
+    entity_name: str | None = None
+    match_type: str | None = None
+    match_score: float | None = Field(default=None, ge=0.0, le=1.0)
+    requires_human_review: bool = False
+    rationale: str
+
+
 class FinalFinding(BaseModel):
     entity_name: str
     mention_text: str
@@ -146,6 +168,9 @@ class ProcessingSummary(BaseModel):
     final_uncertain_findings: int = Field(default=0, ge=0)
     final_rejected_findings: int = Field(default=0, ge=0)
     final_requires_human_review: int = Field(default=0, ge=0)
+    resource_link_matches_total: int = Field(default=0, ge=0)
+    author_check_status: str | None = None
+    author_requires_human_review: bool = False
 
 
 class CheckReport(BaseModel):
@@ -156,6 +181,8 @@ class CheckReport(BaseModel):
     registry_snapshot_date: date | None = None
     status: ReportStatus
     findings: list[FinalFinding] = Field(default_factory=list)
+    resource_link_matches: list[ResourceLinkMatch] = Field(default_factory=list)
+    author_check: AuthorCheckResult | None = None
     limitations: list[str] = Field(default_factory=list)
     processing_summary: ProcessingSummary | None = None
 

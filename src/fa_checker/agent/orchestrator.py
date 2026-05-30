@@ -93,8 +93,14 @@ def run_bounded_review_check(
         article_author=article.author,
         checked_at=datetime.now(UTC),
         registry_snapshot_date=analysis.registry_snapshot_date,
-        status=_derive_report_status(final_findings),
+        status=_derive_report_status(
+            final_findings,
+            analysis.resource_link_matches,
+            analysis.author_check,
+        ),
         findings=final_findings,
+        resource_link_matches=analysis.resource_link_matches,
+        author_check=analysis.author_check,
         limitations=_dedupe_limitations(limitations),
         processing_summary=_build_agentic_processing_summary(
             analysis=analysis,
@@ -307,15 +313,23 @@ def _rescore_with_disambiguation(
     return final_findings
 
 
-def _derive_report_status(findings: list[FinalFinding]) -> ReportStatus:
-    if not findings:
-        return ReportStatus.NO_MATCH
+def _derive_report_status(
+    findings: list[FinalFinding],
+    resource_link_matches=None,
+    author_check=None,
+) -> ReportStatus:
     if any(finding.status == FindingStatus.CONFIRMED for finding in findings):
+        return ReportStatus.CONFIRMED_MATCH_FOUND
+    if resource_link_matches:
+        return ReportStatus.CONFIRMED_MATCH_FOUND
+    if author_check is not None and author_check.status == "strong_match":
         return ReportStatus.CONFIRMED_MATCH_FOUND
     if any(
         finding.status in {FindingStatus.PROBABLE, FindingStatus.UNCERTAIN}
         for finding in findings
     ):
+        return ReportStatus.POTENTIAL_MATCH_FOUND
+    if author_check is not None and author_check.status == "weak_match":
         return ReportStatus.POTENTIAL_MATCH_FOUND
     return ReportStatus.NO_MATCH
 
@@ -373,6 +387,15 @@ def _build_agentic_processing_summary(
         final_rejected_findings=_count_findings(final_findings, FindingStatus.REJECTED),
         final_requires_human_review=sum(
             finding.requires_human_review for finding in final_findings
+        ),
+        resource_link_matches_total=len(analysis.resource_link_matches),
+        author_check_status=(
+            analysis.author_check.status if analysis.author_check is not None else None
+        ),
+        author_requires_human_review=(
+            analysis.author_check.requires_human_review
+            if analysis.author_check is not None
+            else False
         ),
     )
 

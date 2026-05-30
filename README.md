@@ -14,6 +14,8 @@ The system is designed for compliance assistance and human review. It does not p
 - article loading and text extraction
 - registry loading and local snapshot parsing
 - exact, alias, and fuzzy matching
+- deterministic article-author check
+- deterministic full resource-link check
 - bounded LLM-agent review through local Ollama
 - weak candidate disambiguation
 - label checking
@@ -73,7 +75,8 @@ make run
 
 Deterministic mode is the default. It does not call an LLM. It loads the
 Rambler article and registry, then runs exact/alias matching, label checking,
-and deterministic risk scoring.
+deterministic author checking, full resource-link checking, and deterministic
+risk scoring.
 
 ```bash
 poetry run fa-checker "URL" --mode deterministic
@@ -124,6 +127,16 @@ compliance-assistance artifact, not a legal verdict.
 For readability, Markdown groups repeated findings with the same entity and
 status while preserving all evidence fragments. JSON output keeps raw findings
 unmerged for machine processing and audit.
+
+The report also includes deterministic checks that are not sent to agentic
+review in the current MVP:
+
+- article author against strong and weak registry aliases;
+- full article-body links against full registry resource URLs.
+
+The resource-link check compares normalized full URLs only. It does not treat a
+shared domain as a match. Weak author matches remain deterministic human-review
+signals; they are not disambiguated by the LLM in this mode.
 
 ## Test
 ```bash

@@ -9,10 +9,12 @@ from fa_checker.domain.enums import (
     RiskLevel,
 )
 from fa_checker.domain.models import (
+    AuthorCheckResult,
     CheckReport,
     EvidenceFragment,
     FinalFinding,
     ProcessingSummary,
+    ResourceLinkMatch,
 )
 from fa_checker.pipeline import run_offline_check
 from fa_checker.reporting.markdown_report import report_to_markdown
@@ -54,6 +56,8 @@ def make_report(
     status: ReportStatus = ReportStatus.NO_MATCH,
     findings: list[FinalFinding] | None = None,
     processing_summary: ProcessingSummary | None = None,
+    author_check: AuthorCheckResult | None = None,
+    resource_link_matches: list[ResourceLinkMatch] | None = None,
 ) -> CheckReport:
     return CheckReport(
         article_url="https://www.rambler.ru/example",
@@ -63,6 +67,8 @@ def make_report(
         registry_snapshot_date=None,
         status=status,
         findings=findings or [],
+        resource_link_matches=resource_link_matches or [],
+        author_check=author_check,
         limitations=["Offline deterministic check only; LLM disambiguation was not applied."],
         processing_summary=processing_summary,
     )
@@ -76,6 +82,7 @@ def test_markdown_no_match_report_contains_metadata_and_limitations() -> None:
     assert "Совпадения с реестром не выявлены текущей проверкой." in markdown
     assert "## Ограничения" in markdown
     assert "LLM disambiguation was not applied" in markdown
+    assert "## Проверка ссылок в статье" in markdown
 
 
 def test_markdown_confirmed_finding_contains_required_fields() -> None:
@@ -507,3 +514,74 @@ def test_markdown_rejected_only_summary_mentions_auditability() -> None:
 
     assert "Активные совпадения с реестром не подтверждены" in markdown
     assert "показаны ниже для аудита" in markdown
+
+
+def test_markdown_renders_author_check_strong_match() -> None:
+    markdown = report_to_markdown(
+        make_report(
+            status=ReportStatus.CONFIRMED_MATCH_FOUND,
+            author_check=AuthorCheckResult(
+                author_name="Илья Варламов",
+                status="strong_match",
+                entity_name="Варламов Илья Александрович",
+                match_type="exact",
+                match_score=1.0,
+                rationale="Article author matches a strong registry alias.",
+            ),
+            processing_summary=ProcessingSummary(
+                author_check_status="strong_match",
+            ),
+        )
+    )
+
+    assert "Проверка автора: присутствует в реестре иностранных агентов" in markdown
+    assert "Варламов Илья Александрович" in markdown
+
+
+def test_markdown_renders_author_check_weak_match() -> None:
+    markdown = report_to_markdown(
+        make_report(
+            status=ReportStatus.POTENTIAL_MATCH_FOUND,
+            author_check=AuthorCheckResult(
+                author_name="Варламов",
+                status="weak_match",
+                entity_name="Варламов Илья Александрович",
+                match_type="alias",
+                match_score=0.55,
+                requires_human_review=True,
+                rationale="Article author matches a weak registry alias; human review is required.",
+            ),
+        )
+    )
+
+    assert "есть слабое совпадение с реестром, требуется ручная проверка" in markdown
+
+
+def test_markdown_renders_resource_link_matches() -> None:
+    markdown = report_to_markdown(
+        make_report(
+            status=ReportStatus.CONFIRMED_MATCH_FOUND,
+            resource_link_matches=[
+                ResourceLinkMatch(
+                    entity_name="Проект «После»",
+                    entity_type="project",
+                    article_url="https://posle.media/about",
+                    registry_url="https://posle.media/about/",
+                    normalized_article_url="https://posle.media/about",
+                    normalized_registry_url="https://posle.media/about",
+                )
+            ],
+            processing_summary=ProcessingSummary(resource_link_matches_total=1),
+        )
+    )
+
+    assert "## Проверка ссылок в статье" in markdown
+    assert "Обнаружены ссылки на ресурсы из реестра" in markdown
+    assert "Проект «После»" in markdown
+    assert "https://posle.media/about" in markdown
+
+
+def test_markdown_renders_absent_resource_link_matches() -> None:
+    markdown = report_to_markdown(make_report())
+
+    assert "Ссылки на ресурсы иностранных агентов в тексте статьи не обнаружены." in markdown

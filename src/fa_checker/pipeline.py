@@ -7,13 +7,17 @@ from fa_checker.agent.state import DeterministicAnalysisResult
 from fa_checker.domain.enums import FindingStatus, ReportStatus
 from fa_checker.domain.models import (
     Article,
+    AuthorCheckResult,
     CheckReport,
     FinalFinding,
     ProcessingSummary,
     RegistryEntry,
+    ResourceLinkMatch,
 )
+from fa_checker.matching.author import check_article_author
 from fa_checker.matching.exact import find_exact_matches
 from fa_checker.matching.labels import check_label
+from fa_checker.matching.resource_links import find_resource_link_matches
 from fa_checker.scoring.risk import ScoringInput, score_candidate_matches
 
 SCAFFOLD_LIMITATION = "Business logic is not implemented yet; this is a scaffold report."
@@ -39,14 +43,20 @@ def run_deterministic_analysis(
         for candidate, label_result in zip(candidates, label_results, strict=True)
     ]
     findings = score_candidate_matches(scoring_inputs)
+    resource_link_matches = find_resource_link_matches(article, registry_entries)
+    author_check = check_article_author(article, registry_entries)
     registry_snapshot_date = _get_registry_snapshot_date(registry_entries)
     base_report = _build_check_report(
         article=article,
         registry_snapshot_date=registry_snapshot_date,
         findings=findings,
+        resource_link_matches=resource_link_matches,
+        author_check=author_check,
         processing_summary=_build_deterministic_processing_summary(
             candidates=candidates,
             findings=findings,
+            resource_link_matches=resource_link_matches,
+            author_check=author_check,
         ),
     )
 
@@ -55,6 +65,8 @@ def run_deterministic_analysis(
         registry_snapshot_date=registry_snapshot_date,
         candidates=candidates,
         label_results=label_results,
+        resource_link_matches=resource_link_matches,
+        author_check=author_check,
         findings=findings,
         base_report=base_report,
         strong_candidates_count=sum(
@@ -96,16 +108,21 @@ def _build_check_report(
     article: Article,
     registry_snapshot_date: date | None,
     findings: list[FinalFinding],
+    resource_link_matches: list[ResourceLinkMatch] | None = None,
+    author_check: AuthorCheckResult | None = None,
     processing_summary: ProcessingSummary | None = None,
 ) -> CheckReport:
+    link_matches = resource_link_matches or []
     return CheckReport(
         article_url=article.url,
         article_title=article.title,
         article_author=article.author,
         checked_at=datetime.now(UTC),
         registry_snapshot_date=registry_snapshot_date,
-        status=_derive_report_status(findings),
+        status=_derive_report_status(findings, link_matches, author_check),
         findings=findings,
+        resource_link_matches=link_matches,
+        author_check=author_check,
         limitations=[OFFLINE_LIMITATION],
         processing_summary=processing_summary,
     )
@@ -125,15 +142,23 @@ def run_check(url: str) -> CheckReport:
     )
 
 
-def _derive_report_status(findings: list[FinalFinding]) -> ReportStatus:
-    if not findings:
-        return ReportStatus.NO_MATCH
+def _derive_report_status(
+    findings: list[FinalFinding],
+    resource_link_matches: list[ResourceLinkMatch] | None = None,
+    author_check: AuthorCheckResult | None = None,
+) -> ReportStatus:
     if any(finding.status == FindingStatus.CONFIRMED for finding in findings):
+        return ReportStatus.CONFIRMED_MATCH_FOUND
+    if resource_link_matches:
+        return ReportStatus.CONFIRMED_MATCH_FOUND
+    if author_check is not None and author_check.status == "strong_match":
         return ReportStatus.CONFIRMED_MATCH_FOUND
     if any(
         finding.status in {FindingStatus.PROBABLE, FindingStatus.UNCERTAIN}
         for finding in findings
     ):
+        return ReportStatus.POTENTIAL_MATCH_FOUND
+    if author_check is not None and author_check.status == "weak_match":
         return ReportStatus.POTENTIAL_MATCH_FOUND
     return ReportStatus.NO_MATCH
 
@@ -145,6 +170,8 @@ def _count_findings(findings: list[FinalFinding], status: FindingStatus) -> int:
 def _build_deterministic_processing_summary(
     candidates,
     findings: list[FinalFinding],
+    resource_link_matches: list[ResourceLinkMatch] | None = None,
+    author_check: AuthorCheckResult | None = None,
 ) -> ProcessingSummary:
     confirmed = _count_findings(findings, FindingStatus.CONFIRMED)
     probable = _count_findings(findings, FindingStatus.PROBABLE)
@@ -170,6 +197,11 @@ def _build_deterministic_processing_summary(
         final_rejected_findings=rejected,
         final_requires_human_review=sum(
             finding.requires_human_review for finding in findings
+        ),
+        resource_link_matches_total=len(resource_link_matches or []),
+        author_check_status=author_check.status if author_check is not None else None,
+        author_requires_human_review=(
+            author_check.requires_human_review if author_check is not None else False
         ),
     )
 

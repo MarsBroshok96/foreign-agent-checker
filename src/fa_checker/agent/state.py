@@ -6,10 +6,12 @@ from pydantic import BaseModel, Field
 
 from fa_checker.domain.models import (
     Article,
+    AuthorCheckResult,
     CandidateMatch,
     CheckReport,
     FinalFinding,
     LabelCheckResult,
+    ResourceLinkMatch,
 )
 
 
@@ -18,6 +20,8 @@ class DeterministicAnalysisResult(BaseModel):
     registry_snapshot_date: date | None = None
     candidates: list[CandidateMatch] = Field(default_factory=list)
     label_results: list[LabelCheckResult] = Field(default_factory=list)
+    resource_link_matches: list[ResourceLinkMatch] = Field(default_factory=list)
+    author_check: AuthorCheckResult | None = None
     findings: list[FinalFinding] = Field(default_factory=list)
     base_report: CheckReport
     strong_candidates_count: int = Field(ge=0)

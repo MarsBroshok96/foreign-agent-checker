@@ -19,11 +19,17 @@ from fa_checker.domain.models import (
 )
 
 
-def make_article(text: str) -> Article:
+def make_article(
+    text: str,
+    author: str | None = None,
+    links: list[str] | None = None,
+) -> Article:
     return Article(
         url="https://www.rambler.ru/example",
         source_domain="www.rambler.ru",
+        author=author,
         text=text,
+        links=links or [],
     )
 
 
@@ -31,6 +37,7 @@ def make_entry(
     full_name: str,
     entity_type: EntityType = EntityType.PERSON,
     aliases: list[str] | None = None,
+    raw_fields: dict | None = None,
 ) -> RegistryEntry:
     return RegistryEntry(
         registry_id=full_name,
@@ -39,6 +46,7 @@ def make_entry(
         normalized_name=full_name.lower(),
         aliases=aliases or [],
         registry_source_url="https://minjust.gov.ru/registry",
+        raw_fields=raw_fields or {},
     )
 
 
@@ -506,3 +514,42 @@ def test_llm_fallback_uncertain_path_stays_conservative(monkeypatch) -> None:
     assert report.status == ReportStatus.POTENTIAL_MATCH_FOUND
     assert report.findings[0].status == FindingStatus.UNCERTAIN
     assert report.findings[0].requires_human_review is True
+
+
+def test_agentic_pipeline_preserves_author_and_resource_link_results(monkeypatch) -> None:
+    patch_action_sequence(
+        monkeypatch,
+        [
+            review_action("request_context", context_window_size="small"),
+            review_action("disambiguate_candidate"),
+        ],
+    )
+
+    def fake_disambiguation(*args, **kwargs):
+        return disambiguation_result(DisambiguationDecision.DIFFERENT_ENTITY)
+
+    monkeypatch.setattr(orchestrator, "disambiguate_candidate", fake_disambiguation)
+
+    report = run_bounded_review_check(
+        make_article(
+            "Белый дом выступил с заявлением.",
+            author="Илья Варламов",
+            links=["https://varlamov.ru"],
+        ),
+        [
+            make_entry("Белый Руслан Викторович"),
+            make_entry(
+                "Варламов Илья Александрович",
+                raw_fields={"resource_urls": ["https://varlamov.ru/"]},
+            ),
+        ],
+    )
+
+    assert report.status == ReportStatus.CONFIRMED_MATCH_FOUND
+    assert report.author_check is not None
+    assert report.author_check.status == "strong_match"
+    assert len(report.resource_link_matches) == 1
+    assert report.resource_link_matches[0].entity_name == "Варламов Илья Александрович"
+    assert report.processing_summary is not None
+    assert report.processing_summary.resource_link_matches_total == 1
+    assert report.processing_summary.author_check_status == "strong_match"

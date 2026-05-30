@@ -119,11 +119,13 @@ def test_extract_article_from_html_extracts_and_resolves_links() -> None:
     html = """
     <html>
       <body>
-        <article><p>Article body text.</p></article>
-        <a href="/internal">Internal</a>
-        <a href="https://example.org/page">External</a>
-        <a href="mailto:test@example.org">Email</a>
-        <a href="/internal">Duplicate</a>
+        <article>
+          <p>Article body text.</p>
+          <a href="/internal">Internal</a>
+          <a href="https://example.org/page">External</a>
+          <a href="mailto:test@example.org">Email</a>
+          <a href="/internal">Duplicate</a>
+        </article>
       </body>
     </html>
     """
@@ -134,6 +136,40 @@ def test_extract_article_from_html_extracts_and_resolves_links() -> None:
         "https://www.rambler.ru/internal",
         "https://example.org/page",
     ]
+
+
+def test_extract_article_from_html_ignores_links_outside_article() -> None:
+    html = """
+    <html>
+      <body>
+        <nav><a href="https://example.org/nav">Navigation</a></nav>
+        <article>
+          <p>Article body text.</p>
+          <a href="https://example.org/body">Body</a>
+        </article>
+        <footer><a href="https://example.org/footer">Footer</a></footer>
+      </body>
+    </html>
+    """
+
+    article = extract_article_from_html("https://www.rambler.ru/news/example", html)
+
+    assert article.links == ["https://example.org/body"]
+
+
+def test_extract_article_from_html_returns_no_links_without_article_tag() -> None:
+    html = """
+    <html>
+      <body>
+        <p>Article body text without article tag.</p>
+        <a href="https://example.org/page">External</a>
+      </body>
+    </html>
+    """
+
+    article = extract_article_from_html("https://www.rambler.ru/news/example", html)
+
+    assert article.links == []
 
 
 def test_extract_article_from_html_raises_when_no_text_extracted() -> None:

@@ -10,10 +10,12 @@ from fa_checker.domain.enums import (
     RiskLevel,
 )
 from fa_checker.domain.models import (
+    AuthorCheckResult,
     CheckReport,
     EvidenceFragment,
     FinalFinding,
     ProcessingSummary,
+    ResourceLinkMatch,
 )
 from fa_checker.reporting.json_report import report_to_dict, report_to_json
 
@@ -46,6 +48,27 @@ def make_report() -> CheckReport:
                 rationale="Strong exact registry match and nearby foreign-agent label found.",
             )
         ],
+        resource_link_matches=[
+            ResourceLinkMatch(
+                registry_id="560",
+                entity_name="Варламов Илья Александрович",
+                entity_type="person",
+                article_url="https://varlamov.ru",
+                registry_url="https://varlamov.ru/",
+                normalized_article_url="https://varlamov.ru",
+                normalized_registry_url="https://varlamov.ru",
+            )
+        ],
+        author_check=AuthorCheckResult(
+            author_name="Илья Варламов",
+            status="strong_match",
+            registry_id="560",
+            entity_name="Варламов Илья Александрович",
+            match_type="exact",
+            match_score=1.0,
+            requires_human_review=False,
+            rationale="Article author matches a strong registry alias.",
+        ),
         limitations=["Offline deterministic check only."],
         processing_summary=ProcessingSummary(
             mode="deterministic",
@@ -53,6 +76,8 @@ def make_report() -> CheckReport:
             deterministic_strong_candidates=1,
             final_findings_total=1,
             final_confirmed_findings=1,
+            resource_link_matches_total=1,
+            author_check_status="strong_match",
         ),
     )
 
@@ -98,6 +123,17 @@ def test_report_to_json_includes_processing_summary() -> None:
 
     assert parsed["processing_summary"]["mode"] == "deterministic"
     assert parsed["processing_summary"]["deterministic_candidates_total"] == 1
+    assert parsed["processing_summary"]["resource_link_matches_total"] == 1
+
+
+def test_report_to_json_includes_author_check_and_resource_link_matches() -> None:
+    parsed = json.loads(report_to_json(make_report()))
+
+    assert parsed["author_check"]["status"] == "strong_match"
+    assert len(parsed["resource_link_matches"]) == 1
+    assert parsed["resource_link_matches"][0]["normalized_registry_url"] == (
+        "https://varlamov.ru"
+    )
 
 
 def test_report_to_json_preserves_raw_duplicate_findings_and_review_rationale() -> None:
