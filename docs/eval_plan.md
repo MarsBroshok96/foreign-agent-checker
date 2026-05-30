@@ -78,6 +78,25 @@ LLM не вызывается.
 
 ---
 
+## Result statuses
+
+The runner can emit:
+
+- `PASS`: strict expected checks passed, normally deterministic.
+- `PASS_LLM`: agentic expected checks passed and trace shows clean action
+  selection plus disambiguation without fallback.
+- `ACCEPTABLE`: agentic output is conservative and within the acceptable
+  envelope, even if not the ideal expected status.
+- `ACCEPTABLE_FALLBACK`: output is conservative, but trace shows fallback or no
+  clean LLM disambiguation.
+- `FAIL`: expected and acceptable checks failed.
+- `DANGEROUS_FAIL`: output weakens compliance posture, for example confirming a
+  false positive without human review.
+- `SKIPPED`: case was skipped, usually because `--skip-agentic` was used.
+
+Dangerous failures matter most. Agentic eval quality depends on the local
+Ollama model; fallback can be acceptable when the product remains conservative.
+
 ## Общие правила оценки
 
 ### Strict pass / PASS
@@ -122,7 +141,7 @@ LLM не вызывается.
 консервативная деградация должна сохраняться. Но как regression gate это более
 слабый сигнал, чем `PASS_LLM`.
 
-### Dangerous failure
+### Dangerous failure / DANGEROUS_FAIL
 
 Dangerous failure — это результат, который ухудшает compliance posture.
 

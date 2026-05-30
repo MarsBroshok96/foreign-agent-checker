@@ -35,11 +35,10 @@ Auxiliary context profiles may be used only for disambiguation. They must not cr
 
 ## LLM policy
 
-LLM may be used for:
+Runtime LLM use is currently limited to:
 
-- entity extraction;
+- bounded action selection for weak-candidate review;
 - weak candidate disambiguation;
-- short narrative explanation from structured findings.
 
 LLM must not:
 
@@ -48,6 +47,9 @@ LLM must not:
 - change the source of truth;
 - make legal conclusions;
 - finalize reports before mandatory checks are complete.
+
+Entity extraction or narrative generation may be added only if explicitly
+requested and kept within the same source-of-truth and auditability boundaries.
 
 ## Coding style
 
@@ -65,8 +67,17 @@ Avoid overengineering.
 
 ## Current implementation phase
 
-The current phase is project scaffolding only.
+The project is a working MVP. Prefer small, behavior-preserving changes unless
+the user explicitly asks for new functionality.
 
-Do not implement full business logic yet.
+Before finalizing code changes, run:
 
-Create importable modules, placeholder classes/functions, CLI skeleton, domain models, and tests that verify the skeleton works.
+- `make check`
+- `make eval-deterministic`
+- `make eval-no-llm`
+
+Agentic eval requires local Ollama; run `make eval-agentic-trace` when
+available.
+
+Do not add runtime internet access, change source-of-truth assumptions, or let
+the LLM finalize reports outside the bounded review policy.

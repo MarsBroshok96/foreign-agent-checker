@@ -1,146 +1,217 @@
 # Contracts
 
-This document defines the stable domain contracts used across the project.
-
-All production data moving between components should be represented by Pydantic models.
+Stable data crossing major component boundaries is represented with Pydantic
+models. Raw dictionaries should stay close to external input parsing.
 
 ## Article
 
-Represents extracted article content and metadata.
+`fa_checker.domain.models.Article`
 
 ```python
 class Article(BaseModel):
     url: str
     source_domain: str
-    title: str | None
-    author: str | None
-    published_at: datetime | None
+    title: str | None = None
+    author: str | None = None
+    published_at: datetime | None = None
     text: str
-    links: list[str]
+    links: list[str] = []
 ```
+
 ## RegistryEntry
 
-Represents one entity from the official registry.
+`fa_checker.domain.models.RegistryEntry`
 
 ```python
 class RegistryEntry(BaseModel):
-    registry_id: str | None
+    registry_id: str | None = None
     full_name: str
-    entity_type: Literal["person", "organization", "media", "project", "unknown"]
+    entity_type: EntityType
     normalized_name: str
-    aliases: list[str]
+    aliases: list[str] = []
     registry_source_url: str
-    registry_snapshot_date: date | None
-    raw_fields: dict[str, Any]
+    registry_snapshot_date: date | None = None
+    raw_fields: dict[str, Any] = {}
 ```
 
 ## ContextProfile
 
-Auxiliary context used only for disambiguation.
+Canonical location: `fa_checker.agent.context_profiles.ContextProfile`.
 
-Important: context profiles are not a source of truth for foreign-agent status.
+Context profiles are local auxiliary data for disambiguation only. They are not
+a source of foreign-agent status.
 
 ```python
 class ContextProfile(BaseModel):
-    registry_id: str | None
+    registry_id: str | None = None
     entity_name: str
-    entity_type: str | None
-    role_or_category: str | None
-    short_description: str | None
-    descriptors: list[str]
-    known_projects: list[str]
-    known_domains: list[str]
-    common_mentions: list[str]
-    disambiguation_hints: list[str]
-    negative_context_hints: list[str]
-    primary_language: str | None
-    confidence: str | None
-    notes: str | None
-    sources: list[str]
+    entity_type: str | None = None
+    role_or_category: str | None = None
+    short_description: str | None = None
+    descriptors: list[str] = []
+    known_projects: list[str] = []
+    known_domains: list[str] = []
+    common_mentions: list[str] = []
+    disambiguation_hints: list[str] = []
+    negative_context_hints: list[str] = []
+    primary_language: str | None = None
+    confidence: str | None = None
+    notes: str | None = None
+    sources: list[str] = []
 ```
+
+## CandidateMatch
+
+`fa_checker.domain.models.CandidateMatch`
+
+```python
+class CandidateMatch(BaseModel):
+    mention_text: str
+    mention_start: int | None = None
+    mention_end: int | None = None
+    registry_entry: RegistryEntry
+    match_type: MatchType
+    match_score: float
+    evidence: list[EvidenceFragment] = []
+    requires_disambiguation: bool
+```
+
 ## EvidenceFragment
 
-Represents an auditable piece of evidence.
+`fa_checker.domain.models.EvidenceFragment`
 
 ```python
 class EvidenceFragment(BaseModel):
-    source: Literal["article_text", "article_author", "article_link", "registry", "context_profile"]
+    source: EvidenceSource
     text: str
     start: int | None = None
     end: int | None = None
 ```
 
-## CandidateMatch
+## LabelCheckResult
 
-Represents a possible match between article mention and registry entity.
+`fa_checker.domain.models.LabelCheckResult`
 
 ```python
-class CandidateMatch(BaseModel):
-    mention_text: str
-    mention_start: int | None
-    mention_end: int | None
-    registry_entry: RegistryEntry
-    match_type: Literal["exact", "alias", "fuzzy", "author", "domain", "llm_entity"]
-    match_score: float
-    evidence: list[EvidenceFragment]
-    requires_disambiguation: bool
+class LabelCheckResult(BaseModel):
+    label_found: bool
+    label_fragment: str | None = None
+    label_distance: int | None = None
+    label_quality: LabelQuality
 ```
+
+## AuthorCheckResult
+
+`fa_checker.domain.models.AuthorCheckResult`
+
+```python
+class AuthorCheckResult(BaseModel):
+    author_name: str | None = None
+    status: str
+    registry_id: str | None = None
+    entity_name: str | None = None
+    match_type: str | None = None
+    match_score: float | None = None
+    requires_human_review: bool = False
+    rationale: str
+```
+
+## ResourceLinkMatch
+
+`fa_checker.domain.models.ResourceLinkMatch`
+
+```python
+class ResourceLinkMatch(BaseModel):
+    registry_id: str | None = None
+    entity_name: str
+    entity_type: str | None = None
+    article_url: str
+    registry_url: str
+    normalized_article_url: str
+    normalized_registry_url: str
+    rationale: str
+```
+
 ## DisambiguationResult
 
-Represents LLM-assisted ambiguity resolution.
+`fa_checker.domain.models.DisambiguationResult`
 
 ```python
 class DisambiguationResult(BaseModel):
-    decision: Literal["same_entity", "likely_same_entity", "uncertain", "different_entity"]
+    decision: DisambiguationDecision
     confidence_score: float
     rationale: str
     requires_human_review: bool
 ```
 
-## LabelCheckResult
-
-Represents whether a foreign-agent label appears near the mention or in the article.
-
-```python
-class LabelCheckResult(BaseModel):
-    label_found: bool
-    label_fragment: str | None
-    label_distance: int | None
-    label_quality: Literal["exact", "weak", "absent"]
-```
-
 ## FinalFinding
 
-Represents one final report finding.
+`fa_checker.domain.models.FinalFinding`
 
 ```python
 class FinalFinding(BaseModel):
     entity_name: str
     mention_text: str
-    status: Literal["confirmed", "probable", "uncertain", "rejected"]
-    risk_level: Literal["no_match", "low", "medium", "high"]
-    confidence_level: Literal["low", "medium", "high"]
-    label_status: Literal["present", "weak", "absent", "not_checked"]
+    match_type: MatchType | None = None
+    match_score: float | None = None
+    status: FindingStatus
+    risk_level: RiskLevel
+    confidence_level: ConfidenceLevel
+    label_status: LabelStatus
     requires_human_review: bool
-    evidence: list[EvidenceFragment]
+    evidence: list[EvidenceFragment] = []
     rationale: str
+    review_rationale: str | None = None
 ```
+
+## ProcessingSummary
+
+`fa_checker.domain.models.ProcessingSummary`
+
+Tracks deterministic candidate counts, deterministic finding counts, optional
+agentic review counts, final finding counts, author status, and resource-link
+match totals. It is used by Markdown/JSON reports and eval summaries.
+
 ## CheckReport
 
-Represents final machine-readable output.
+`fa_checker.domain.models.CheckReport`
 
 ```python
 class CheckReport(BaseModel):
     article_url: str
-    article_title: str | None
-    article_author: str | None
+    article_title: str | None = None
+    article_author: str | None = None
     checked_at: datetime
-    registry_snapshot_date: date | None
-    status: Literal["no_match", "potential_match_found", "confirmed_match_found", "error"]
-    findings: list[FinalFinding]
-    limitations: list[str]
+    registry_snapshot_date: date | None = None
+    status: ReportStatus
+    findings: list[FinalFinding] = []
+    resource_link_matches: list[ResourceLinkMatch] = []
+    author_check: AuthorCheckResult | None = None
+    limitations: list[str] = []
+    processing_summary: ProcessingSummary | None = None
 ```
 
-## Design rule
+## AgentReviewState
 
-No component should pass unstructured dictionaries across major module boundaries unless the dictionary is raw external data before parsing.
+`fa_checker.agent.state.AgentReviewState`
+
+Holds deterministic analysis, weak review candidates, per-candidate context
+request counts, review history, limitations, and final findings for bounded
+agentic review.
+
+## AgentReviewAction
+
+`fa_checker.agent.schemas.AgentReviewAction`
+
+```python
+class AgentReviewAction(BaseModel):
+    action_type: Literal[
+        "request_context",
+        "disambiguate_candidate",
+        "finalize",
+        "request_human_review",
+    ]
+    candidate_index: int | None = None
+    context_window_size: Literal["small", "medium", "large"] | None = None
+    reason: str
+```

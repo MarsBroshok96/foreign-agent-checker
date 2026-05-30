@@ -1,191 +1,146 @@
 # Foreign Agent Checker
 
-A bounded tool-calling agent for checking Rambler articles against the official Russian Ministry of Justice foreign-agent registry.
+Compliance-assistance CLI for checking Rambler articles against the official
+Russian Ministry of Justice foreign-agent registry.
 
-## Purpose
+The tool loads a Rambler article URL, loads or refreshes a Minjust registry
+snapshot, runs deterministic checks, and renders a Markdown or JSON report. It
+helps surface text mentions, author signals, and full resource-link matches
+that may require human review. It does not provide legal conclusions.
 
-The tool accepts a Rambler article URL, extracts article text and metadata, checks the article against the official registry, and produces a short evidence-based report.
+## Modes
 
-The system is designed for compliance assistance and human review. It does not provide legal conclusions.
+### Deterministic
 
-## MVP capabilities
+Deterministic mode is the default and does not call an LLM. It performs:
 
-- CLI input for Rambler article URL
-- article loading and text extraction
-- registry loading and local snapshot parsing
-- exact, alias, and fuzzy matching
-- deterministic article-author check
-- deterministic full resource-link check
-- optional person-only fuzzy recall
-- bounded LLM-agent review through local Ollama
-- weak candidate disambiguation
-- label checking
-- deterministic risk scoring
-- Markdown and JSON report output
+- Rambler article loading and extraction;
+- Minjust registry loading, caching, and XLSX parsing;
+- exact and alias text matching;
+- optional person-only fuzzy recall with `--enable-fuzzy`;
+- foreign-agent label proximity/article-level checking;
+- article-author checks against registry aliases;
+- full resource URL checks against registry resource URLs;
+- deterministic risk scoring and report generation.
 
-## Architecture
+```bash
+poetry run fa-checker "https://www.rambler.ru/..." --mode deterministic
+```
 
-The project uses a bounded semi-agentic architecture:
+### Agentic
 
+Agentic mode always runs the deterministic baseline first. It then reviews only
+weak text/fuzzy candidates through a bounded local Ollama action loop. Strong
+deterministic findings, author checks, and resource-link checks are not sent to
+the LLM.
 
-deterministic pipeline
-→ structured agent state
-→ bounded tool-calling loop
-→ deterministic risk scoring
-→ report generation
+The LLM may request bounded article context, choose disambiguation, request
+human review, or finalize a candidate review. Python validates actions, local
+context profiles are auxiliary only, the runtime agent does not browse the
+internet, and final scoring/reporting remain deterministic.
 
-See:
+```bash
+poetry run fa-checker "https://www.rambler.ru/..." --mode agentic
+```
 
-docs/architecture.md
-docs/contracts.md
-docs/agent.md
+## Quickstart
 
+Install dependencies:
 
-## Installation
 ```bash
 poetry install
 ```
 
-Environment
+Copy optional environment defaults:
 
-Copy example env file:
 ```bash
 cp .env.example .env
 ```
 
-Expected local Ollama server:
+For agentic mode, run a local Ollama server. The default model is
+`qwen2.5:14b-instruct`.
+
 ```bash
 ollama serve
 ```
 
-Default model:
-```bash
-qwen2.5:14b-instruct
-```
-
-## Run
-```bash
-poetry run fa-checker
-```
-or:
-```bash
-make run
-```
-
-## CLI modes
-
-Deterministic mode is the default. It does not call an LLM. It loads the
-Rambler article and registry, then runs exact/alias matching, label checking,
-deterministic author checking, full resource-link checking, and deterministic
-risk scoring.
+Common runs:
 
 ```bash
 poetry run fa-checker "URL" --mode deterministic
-```
-
-Agentic mode runs the deterministic baseline first, then reviews only weak
-candidates through a bounded local Ollama action loop. The LLM may request
-article context, ask for disambiguation, request human review, or finalize that
-candidate review. Python validates every action, local context profiles are
-auxiliary data, there is no internet browsing, and final risk remains
-deterministic.
-
-```bash
 poetry run fa-checker "URL" --mode agentic
-poetry run fa-checker "URL" --mode agentic --context-profiles-path data/context/context_profiles.json
 poetry run fa-checker "URL" --registry-path data/samples/registries/minjust_export_sample.xlsx
-```
-
-Optional fuzzy recall is disabled by default. When enabled, it applies only to
-person registry entries and creates weak candidates that require disambiguation
-or human review. It intentionally does not run for organizations, media,
-projects, domains, or resource links.
-
-```bash
 poetry run fa-checker "URL" --mode deterministic --enable-fuzzy
 poetry run fa-checker "URL" --mode agentic --enable-fuzzy
+poetry run fa-checker "URL" --output-format json
+poetry run fa-checker "URL" --mode agentic --context-profiles-path data/context/context_profiles.json
+```
+
+Equivalent Make targets include:
+
+```bash
+make run-deterministic
+make run-agentic
+make run-json
+make run-deterministic-fuzzy
+make run-agentic-fuzzy
 ```
 
 ## Context Profiles
 
-Context profiles are optional auxiliary data for disambiguation. They are not a
-source of foreign-agent status, and the runtime agent does not browse the
-internet.
+Context profiles are local JSON files used only to help disambiguate weak
+candidates in agentic mode. They are not a source of foreign-agent status and
+must not override the official registry.
 
-Profiles can be enriched offline by a developer or Codex-assisted workflow.
-Useful developer commands:
+Runtime agentic review does not browse the internet. Profile enrichment is an
+offline/developer workflow documented in
+[docs/context_profile_enrichment_skill.md](docs/context_profile_enrichment_skill.md).
+
+Useful profile commands:
 
 ```bash
-poetry run python scripts/validate_context_profiles.py data/context/context_profiles.json --registry-xlsx data/registry/minjust_registry_latest.xlsx
 poetry run python scripts/profile_coverage.py data/registry/minjust_registry_latest.xlsx data/context/context_profiles.json --limit 50
+poetry run python scripts/validate_context_profiles.py data/context/context_profiles.json --registry-xlsx data/registry/minjust_registry_latest.xlsx
 ```
 
-See [docs/context_profile_enrichment_skill.md](docs/context_profile_enrichment_skill.md).
+## Reports
 
-## Report Interpretation
+Markdown reports include metadata, a short summary, deterministic-layer counts,
+agentic-review counts when applicable, resource-link matches, grouped findings,
+and limitations.
 
-Markdown reports separate the deterministic layer summary, agentic review
-summary, and final finding groups:
-
-- confirmed/probable findings that do not require human review;
-- candidates requiring human review;
-- candidates rejected after review.
-
-If all weak candidates are rejected, the overall status may be `no_match` while
-the report still lists rejected candidates for auditability. The report is a
-compliance-assistance artifact, not a legal verdict.
-
-For readability, Markdown groups repeated findings with the same entity and
-status while preserving all evidence fragments. JSON output keeps raw findings
-unmerged for machine processing and audit.
-
-The report also includes deterministic checks that are not sent to agentic
-review in the current MVP:
-
-- article author against strong and weak registry aliases;
-- full article-body links against full registry resource URLs.
-
-The resource-link check compares normalized full URLs only. It does not treat a
-shared domain as a match. Weak author matches remain deterministic human-review
-signals; they are not disambiguated by the LLM in this mode.
+JSON reports preserve raw findings for tests, integration, and audit. Markdown
+groups repeated findings for readability.
 
 ## Evaluation
 
-A small machine-readable eval set lives at
-`tests/eval_cases/basic_eval.json`, with a lightweight runner at
+The eval set lives at `tests/eval_cases/basic_eval.json`; the runner is
 `scripts/run_eval.py`.
-
-Deterministic eval does not require Ollama:
 
 ```bash
 make eval-deterministic
 make eval-no-llm
-```
-
-Agentic eval runs the bounded local LLM review path and requires a working
-local Ollama setup:
-
-```bash
-make eval-agentic
 make eval-agentic-trace
-make eval-all
 ```
 
-The runner reports `PASS`, `PASS_LLM`, `ACCEPTABLE`,
-`ACCEPTABLE_FALLBACK`, `FAIL`, and `DANGEROUS_FAIL`.
-`PASS_LLM` means an agentic case passed with real disambiguation calls and no
-detected fallback. `ACCEPTABLE_FALLBACK` means the product stayed conservative,
-but eval detected fallback or missing clean LLM disambiguation. Dangerous
-failures highlight outcomes that would weaken the compliance posture.
-`make eval-agentic-trace` prints compact action/disambiguation trace without
-printing prompts or raw model responses.
+`PASS` is a strict deterministic pass. `PASS_LLM` means an agentic case passed
+with clean LLM action/disambiguation calls. `ACCEPTABLE_FALLBACK` means the
+product stayed conservative, but the trace showed fallback or missing clean LLM
+disambiguation. Dangerous failures are outcomes that weaken the compliance
+posture, such as confirming a false positive without human review.
 
 ## Test
+
 ```bash
-make test
-make lint
+make check
 ```
 
-## Important limitation
+## Limitations
 
-The system does not issue a legal verdict. It produces evidence-based findings and highlights cases requiring human review.
+- The report is not a legal verdict.
+- The tool is conservative but cannot guarantee full recall.
+- Fuzzy recall is person-only.
+- Runtime agentic review does not browse the internet.
+- Character offsets may be approximate after text normalization.
+- Agentic outcomes depend on local model quality and may safely degrade to
+  human review.

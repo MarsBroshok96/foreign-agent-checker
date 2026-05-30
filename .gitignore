@@ -13,7 +13,6 @@ htmlcov/
 .venv/
 .env
 .env.local
-.env.example
 
 # Build
 dist/

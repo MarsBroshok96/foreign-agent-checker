@@ -29,7 +29,9 @@ official Ministry of Justice registry remains the only source of truth.
 
 2. Pick a small batch of missing entries.
 
-3. Research each entity manually or with Codex web capabilities.
+3. Research each entity manually or with explicitly requested developer/Codex
+   web research. This is an offline enrichment workflow, not runtime agent
+   behavior.
 
 4. Fill profiles using neutral, source-backed descriptions.
 

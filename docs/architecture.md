@@ -2,129 +2,81 @@
 
 ## Purpose
 
-This project implements a bounded tool-calling agent that checks a Rambler article for mentions of entities listed in the official Russian Ministry of Justice foreign-agent registry.
+Foreign Agent Checker is a compliance-assistance CLI for checking Rambler
+articles against the official Russian Ministry of Justice foreign-agent
+registry. It produces evidence-based findings and human-review signals; it does
+not make legal conclusions.
 
-The system is designed as a compliance-assistance tool, not as a legal decision-maker. It produces evidence-based findings and highlights cases that require human review.
-
-## Core architectural principle
-
-The solution is not a free-form LLM chatbot. It is a bounded semi-agentic system:
-
-1. A deterministic pipeline performs source loading, article extraction, registry parsing, normalization, and first-pass candidate generation.
-2. A bounded LLM agent receives structured state and may call a limited set of tools.
-3. Python orchestrator validates every tool call against policy, state, and schemas.
-4. Final risk scoring is deterministic.
-5. Ambiguous cases are escalated to human review.
-
-## High-level flow
+## High-Level Flow
 
 ```text
 CLI
- ↓
-URL validation
- ↓
-Article loading
- ↓
-Article text and metadata extraction
- ↓
-Registry loading and parsing
- ↓
-Candidate generation
-   ├─ exact matching
-   ├─ alias matching
-   ├─ fuzzy matching
-   ├─ author checking
-   └─ optional domain/link checking
- ↓
-Bounded agentic review
-   ├─ decides next tool call
-   ├─ receives observation
-   ├─ updates state
-   └─ stops only when completion criteria are satisfied
- ↓
-Risk scoring
- ↓
-Markdown and JSON report generation
+  -> Rambler article loader/extractor
+  -> Minjust registry loader/cache/parser
+  -> deterministic analysis
+       -> exact/alias matching
+       -> optional person-only fuzzy recall
+       -> label checking
+       -> author check
+       -> full resource URL check
+       -> deterministic risk scoring
+  -> optional bounded agentic review for weak text/fuzzy candidates
+  -> deterministic Markdown/JSON report
 ```
 
-## What is deterministic
+## Source Of Truth
 
-The following components must be deterministic and covered by tests:
+The official Ministry of Justice registry is the only source of truth for
+foreign-agent status. Context profiles may help disambiguate weak candidates,
+but they do not create registry facts and must not override the registry.
 
-URL validation
-article loading
-text extraction fallback logic
-text normalization
-registry parsing
-alias generation
-exact matching
-fuzzy matching
-label checking
-risk scoring
-report schema generation
+## Deterministic Layer
 
-## What may use LLM
+The deterministic layer always runs first in both CLI modes. It is responsible
+for article loading/extraction, registry loading/cache parsing, candidate
+generation, label checks, author checks, resource-link checks, risk scoring,
+and report construction.
 
-LLM may be used only for bounded reasoning tasks:
+Exact and alias matching operate over normalized article text. Optional fuzzy
+recall is disabled by default and applies only to person registry entries. Fuzzy
+candidates are weak candidates and require disambiguation or human review.
 
-extracting named entities from article text;
-disambiguating weak candidate matches;
-generating human-readable explanation from structured findings.
+Author checks and full resource URL checks are deterministic side signals. They
+can affect final report status, but they are not reviewed by the LLM in the
+current MVP.
 
-## LLM must not:
+## Agentic Review
 
-replace the official registry as source of truth;
-browse the internet;
-invent registry entries;
-issue a legal verdict;
-finalize a report before mandatory checks are complete.
+Agentic mode runs the deterministic baseline first, then sends only weak
+text/fuzzy candidates to a bounded local Ollama review loop. Strong candidates
+are not sent to the LLM by default.
 
-## Agentic design
+For each weak candidate, the LLM may choose only bounded actions such as
+requesting article context, disambiguating the candidate, requesting human
+review, or finalizing that candidate review. Python validates and repairs or
+rejects actions according to policy. Invalid output, Ollama errors, or unsafe
+steps degrade conservatively to human review.
 
-The implemented review loop receives structured deterministic analysis state
-and bounded review-candidate state.
+The runtime agent does not browse the internet. Local context profile lookup is
+deterministic support data, not an open-ended LLM tool.
 
-At each step it must return one of the following structured actions:
+## Reporting
 
-call a tool;
-request human review;
-finalize report.
+Final score, report status, Markdown rendering, and JSON rendering are
+deterministic. Markdown is optimized for human review and groups repeated
+findings. JSON preserves raw findings for tests and audit.
 
-The orchestrator decides whether the requested action is allowed.
+## Evaluation
 
-## Completion criteria
+The eval runner supports deterministic and agentic checks. Deterministic evals
+are strict and require no Ollama. Agentic evals can report clean LLM passes or
+safe fallback outcomes with action/disambiguation trace accounting.
 
-The agent cannot finalize a report until:
+## Non-Goals
 
-1. article text has been extracted;
-2. registry has been loaded;
-3. deterministic candidate generation has completed;
-4. recall pass has completed;
-5. weak candidates have been disambiguated or escalated;
-6. labels have been checked for confirmed/probable findings;
-7. risk scoring has completed.
-
-## Risk posture
-
-The system is optimized for high recall in candidate generation and conservative precision in final confirmed findings.
-
-Uncertain cases must be marked as requiring human review.
-
-## Output formats
-
-The system produces:
-
-1. Markdown report for human review.
-2. JSON report for tests, integration, and auditability.
-
-## Non-goals for MVP
-
-The MVP does not include:
-
-web UI;
-database;
-LangChain or LangGraph;
-browser automation;
-continuous monitoring of multiple articles;
-production-grade legal compliance;
-automatic biographical enrichment for the whole registry.
+- Web UI.
+- Database.
+- LangChain, LangGraph, browser automation, or Selenium/Playwright workflows.
+- Runtime internet enrichment.
+- Production legal decision-making.
+- Automatic enrichment for the whole registry.
