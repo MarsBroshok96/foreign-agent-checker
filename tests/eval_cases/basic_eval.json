@@ -119,6 +119,8 @@
         "status": "no_match",
         "rejected_count": 1,
         "human_review_count": 0,
+        "min_disambiguation_calls": 1,
+        "requires_llm_disambiguation": true,
         "must_have_findings": [
           {
             "entity_name": "Белый Руслан Викторович",
@@ -130,6 +132,7 @@
       "acceptable": {
         "statuses": ["potential_match_found"],
         "allow_uncertain_human_review": true,
+        "allow_fallback": true,
         "must_not_have_finding_statuses": ["confirmed", "probable"]
       },
       "dangerous": {
@@ -172,6 +175,8 @@
       "expected": {
         "status": "no_match",
         "rejected_count": 1,
+        "min_disambiguation_calls": 1,
+        "requires_llm_disambiguation": true,
         "must_have_findings": [
           {
             "entity_name": "Проект «После»",
@@ -183,6 +188,7 @@
       "acceptable": {
         "statuses": ["potential_match_found"],
         "allow_uncertain_human_review": true,
+        "allow_fallback": true,
         "must_not_have_finding_statuses": ["confirmed", "probable"]
       },
       "dangerous": {
@@ -224,6 +230,8 @@
       ],
       "expected": {
         "statuses": ["confirmed_match_found", "potential_match_found"],
+        "min_disambiguation_calls": 1,
+        "requires_llm_disambiguation": true,
         "must_not_have_findings": [
           {
             "entity_name": "Проект «После»",
@@ -233,7 +241,8 @@
       },
       "acceptable": {
         "statuses": ["potential_match_found"],
-        "allow_uncertain_human_review": true
+        "allow_uncertain_human_review": true,
+        "allow_fallback": true
       },
       "dangerous": {
         "forbidden_entity_status_pairs": [
@@ -395,6 +404,67 @@
       },
       "dangerous": {
         "forbid_finding_statuses_without_human_review": ["confirmed"]
+      }
+    },
+    {
+      "id": "agentic_fuzzy_varlamova",
+      "description": "Agentic review should receive a person-only fuzzy candidate.",
+      "mode": "agentic",
+      "enable_fuzzy": true,
+      "article": {
+        "title": "Eval case",
+        "url": "https://news.rambler.ru/eval/agentic-fuzzy-varlamova",
+        "source_domain": "news.rambler.ru",
+        "author": "Обычный Автор",
+        "text": "Слова Варламова вызвали дискуссию о городской среде.",
+        "links": []
+      },
+      "registry_entries": [
+        {
+          "registry_id": "560",
+          "full_name": "Варламов Илья Александрович",
+          "entity_type": "person",
+          "aliases": [],
+          "raw_fields": {}
+        }
+      ],
+      "context_profiles": [
+        {
+          "registry_id": "560",
+          "entity_name": "Варламов Илья Александрович",
+          "entity_type": "person",
+          "descriptors": ["блогер", "урбанист", "журналист"],
+          "common_mentions": ["Илья Варламов", "Варламов"],
+          "disambiguation_hints": ["Контекст городской среды может быть связан с урбанистом."]
+        }
+      ],
+      "expected": {
+        "status": "potential_match_found",
+        "deterministic_fuzzy_candidates": 1,
+        "min_disambiguation_calls": 1,
+        "requires_llm_disambiguation": true,
+        "must_have_findings": [
+          {
+            "entity_name": "Варламов Илья Александрович",
+            "match_type": "fuzzy",
+            "requires_human_review": true
+          }
+        ]
+      },
+      "acceptable": {
+        "statuses": ["potential_match_found"],
+        "allow_uncertain_human_review": true,
+        "allow_fallback": true
+      },
+      "dangerous": {
+        "min_deterministic_fuzzy_candidates": 1,
+        "forbidden_entity_status_pairs": [
+          {
+            "entity_name": "Варламов Илья Александрович",
+            "status": "rejected",
+            "requires_human_review": false
+          }
+        ]
       }
     },
     {
@@ -705,6 +775,8 @@
       "expected": {
         "status": "confirmed_match_found",
         "confirmed_count": 1,
+        "min_disambiguation_calls": 1,
+        "requires_llm_disambiguation": true,
         "must_have_findings": [
           {
             "entity_name": "Варламов Илья Александрович",
@@ -714,6 +786,7 @@
       },
       "acceptable": {
         "statuses": ["confirmed_match_found"],
+        "allow_fallback": true,
         "must_have_findings": [
           {
             "entity_name": "Варламов Илья Александрович",

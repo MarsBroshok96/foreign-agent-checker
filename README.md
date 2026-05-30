@@ -167,12 +167,18 @@ local Ollama setup:
 
 ```bash
 make eval-agentic
+make eval-agentic-trace
 make eval-all
 ```
 
-The runner reports `PASS`, `ACCEPTABLE`, `FAIL`, and `DANGEROUS_FAIL`.
-`ACCEPTABLE` is used for agentic cases where conservative uncertainty is allowed.
-Dangerous failures highlight outcomes that would weaken the compliance posture.
+The runner reports `PASS`, `PASS_LLM`, `ACCEPTABLE`,
+`ACCEPTABLE_FALLBACK`, `FAIL`, and `DANGEROUS_FAIL`.
+`PASS_LLM` means an agentic case passed with real disambiguation calls and no
+detected fallback. `ACCEPTABLE_FALLBACK` means the product stayed conservative,
+but eval detected fallback or missing clean LLM disambiguation. Dangerous
+failures highlight outcomes that would weaken the compliance posture.
+`make eval-agentic-trace` prints compact action/disambiguation trace without
+printing prompts or raw model responses.
 
 ## Test
 ```bash

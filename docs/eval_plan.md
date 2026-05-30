@@ -22,11 +22,14 @@ scripts/run_eval.py
 make eval-deterministic
 make eval-no-llm
 make eval-agentic
+make eval-agentic-trace
 make eval-all
 ```
 
 `eval-deterministic` и `eval-no-llm` не требуют Ollama. Agentic eval запускает
-локальный bounded LLM review и требует работающий Ollama.
+локальный bounded LLM review и требует работающий Ollama. `eval-agentic-trace`
+дополнительно печатает компактный trace по action selection, context requests,
+disambiguation decisions и fallback-сигналам.
 
 Он должен подтвердить, что система корректно обрабатывает:
 
@@ -77,7 +80,7 @@ LLM не вызывается.
 
 ## Общие правила оценки
 
-### Strict pass
+### Strict pass / PASS
 
 Используется для deterministic cases.
 
@@ -90,7 +93,19 @@ LLM не вызывается.
 - fuzzy candidate count;
 - human review flag.
 
-### Acceptable pass
+### PASS_LLM
+
+Используется для agentic cases, когда expected checks прошли и trace показывает
+реальное LLM-assisted поведение:
+
+- был хотя бы один вызов action selection;
+- был хотя бы один вызов disambiguation;
+- не обнаружен fallback action selection / disambiguation.
+
+Это лучший сигнал, что agentic функциональность действительно сработала, а не
+просто продукт безопасно деградировал.
+
+### Acceptable pass / ACCEPTABLE
 
 Используется для agentic cases, где LLM может вести себя не полностью стабильно.
 
@@ -99,6 +114,13 @@ LLM не вызывается.
 - expected: rejected;
 - acceptable: uncertain + requires_human_review=true;
 - bad: confirmed without human review.
+
+### ACCEPTABLE_FALLBACK
+
+Используется, когда результат безопасен, но eval trace показывает fallback или
+отсутствие чистого LLM disambiguation. Это не продуктовый баг само по себе:
+консервативная деградация должна сохраняться. Но как regression gate это более
+слабый сигнал, чем `PASS_LLM`.
 
 ### Dangerous failure
 
@@ -119,8 +141,10 @@ Dangerous failure — это результат, который ухудшает
 Для каждого eval run желательно фиксировать:
 
 - total cases;
-- strict passed;
-- acceptable passed;
+- PASS;
+- PASS_LLM;
+- ACCEPTABLE;
+- ACCEPTABLE_FALLBACK;
 - failed;
 - dangerous failures;
 - deterministic failures;

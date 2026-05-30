@@ -154,6 +154,49 @@ def test_evaluate_case_result_returns_acceptable() -> None:
     assert reasons
 
 
+def test_evaluate_case_result_returns_pass_llm_for_agentic_clean_trace() -> None:
+    result, reasons = run_eval.evaluate_case_result(
+        {
+            "mode": "agentic",
+            "expected": {
+                "status": "confirmed_match_found",
+                "min_disambiguation_calls": 1,
+            },
+        },
+        make_report(),
+        {
+            **run_eval.empty_trace_summary(),
+            "action_selection_calls": 1,
+            "disambiguation_calls": 1,
+        },
+    )
+
+    assert result == run_eval.RESULT_PASS_LLM
+    assert reasons
+
+
+def test_evaluate_case_result_returns_acceptable_fallback_for_agentic_fallback() -> None:
+    result, reasons = run_eval.evaluate_case_result(
+        {
+            "mode": "agentic",
+            "expected": {"status": "no_match"},
+            "acceptable": {
+                "statuses": ["confirmed_match_found"],
+                "allow_fallback": True,
+            },
+        },
+        make_report(),
+        {
+            **run_eval.empty_trace_summary(),
+            "action_selection_calls": 1,
+            "fallback_count": 1,
+        },
+    )
+
+    assert result == run_eval.RESULT_ACCEPTABLE_FALLBACK
+    assert reasons
+
+
 def test_evaluate_case_result_returns_dangerous_fail() -> None:
     result, reasons = run_eval.evaluate_case_result(
         {
@@ -165,6 +208,25 @@ def test_evaluate_case_result_returns_dangerous_fail() -> None:
 
     assert result == run_eval.RESULT_DANGEROUS_FAIL
     assert "dangerous" in reasons[0]
+
+
+def test_dangerous_failure_overrides_pass_llm() -> None:
+    result, reasons = run_eval.evaluate_case_result(
+        {
+            "mode": "agentic",
+            "expected": {"status": "confirmed_match_found"},
+            "dangerous": {"forbid_statuses": ["confirmed_match_found"]},
+        },
+        make_report(),
+        {
+            **run_eval.empty_trace_summary(),
+            "action_selection_calls": 1,
+            "disambiguation_calls": 1,
+        },
+    )
+
+    assert result == run_eval.RESULT_DANGEROUS_FAIL
+    assert reasons
 
 
 def test_evaluate_case_result_returns_fail() -> None:
@@ -187,3 +249,58 @@ def test_load_eval_file_loads_json(tmp_path) -> None:
     data = run_eval.load_eval_file(path)
 
     assert data["version"] == 1
+
+
+def test_summarize_trace_counts_events() -> None:
+    trace = [
+        {"event": "action_selected", "action_type": "request_context", "fallback": False},
+        {"event": "context_requested", "window_size": "small"},
+        {
+            "event": "action_repaired",
+            "from_action": "finalize",
+            "to_action": "request_human_review",
+        },
+        {
+            "event": "disambiguation_completed",
+            "decision": "uncertain",
+            "fallback": True,
+        },
+    ]
+
+    summary = run_eval.summarize_trace(trace)
+
+    assert summary["action_selection_calls"] == 1
+    assert summary["disambiguation_calls"] == 1
+    assert summary["disambiguation_fallback_count"] == 1
+    assert summary["repaired_count"] == 1
+    assert summary["fallback_count"] == 1
+
+
+def test_main_skip_agentic_reports_skipped(tmp_path, capsys) -> None:
+    path = tmp_path / "eval.json"
+    path.write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "cases": [
+                    {
+                        "id": "agentic_case",
+                        "mode": "agentic",
+                        "article": {
+                            "url": "https://news.rambler.ru/eval/test",
+                            "source_domain": "news.rambler.ru",
+                            "text": "Белый дом.",
+                        },
+                        "registry_entries": [],
+                        "expected": {},
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    exit_code = run_eval.main([str(path), "--skip-agentic"])
+
+    assert exit_code == 0
+    assert "SKIPPED agentic_case" in capsys.readouterr().out
