@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from fa_checker.domain.models import AgentAction, DisambiguationResult
+from fa_checker.domain.models import DisambiguationResult
 
 ContextWindowSize = Literal["small", "medium", "large"]
 
@@ -27,7 +27,6 @@ class AgentReviewPolicyDecision(BaseModel):
 
 
 __all__ = [
-    "AgentAction",
     "AgentReviewAction",
     "AgentReviewPolicyDecision",
     "ContextWindowSize",

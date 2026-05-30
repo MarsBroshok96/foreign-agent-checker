@@ -8,7 +8,6 @@ from typing import Any
 from pydantic import BaseModel, Field, field_validator
 
 from fa_checker.domain.enums import (
-    AgentActionType,
     ConfidenceLevel,
     DisambiguationDecision,
     EntityType,
@@ -189,10 +188,3 @@ class CheckReport(BaseModel):
     author_check: AuthorCheckResult | None = None
     limitations: list[str] = Field(default_factory=list)
     processing_summary: ProcessingSummary | None = None
-
-
-class AgentAction(BaseModel):
-    action_type: AgentActionType
-    tool_name: str | None = None
-    arguments: dict[str, Any] = Field(default_factory=dict)
-    reason: str

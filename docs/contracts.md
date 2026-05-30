@@ -135,17 +135,6 @@ class CheckReport(BaseModel):
     limitations: list[str]
 ```
 
-## AgentAction
-
-Represents the next action chosen by the LLM agent.
-
-```python
-class AgentAction(BaseModel):
-    action_type: Literal["call_tool", "finalize", "request_human_review"]
-    tool_name: str | None
-    arguments: dict[str, Any]
-    reason: str
-```
 ## Design rule
 
 No component should pass unstructured dictionaries across major module boundaries unless the dictionary is raw external data before parsing.

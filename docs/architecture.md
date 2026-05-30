@@ -81,7 +81,8 @@ finalize a report before mandatory checks are complete.
 
 ## Agentic design
 
-The agent receives an AgentState, a list of allowed tools, completion criteria, and policy constraints.
+The implemented review loop receives structured deterministic analysis state
+and bounded review-candidate state.
 
 At each step it must return one of the following structured actions:
 

@@ -7,7 +7,7 @@ from fa_checker.agent.context_profiles import ContextProfile
 from fa_checker.agent.disambiguation import disambiguate_candidate
 from fa_checker.agent.policy import allowed_actions_for_candidate, normalize_or_repair_action
 from fa_checker.agent.schemas import AgentReviewAction
-from fa_checker.agent.state import AgentReviewState, AgentState, build_agent_review_state
+from fa_checker.agent.state import AgentReviewState, build_agent_review_state
 from fa_checker.agent.tools import (
     MAX_CONTEXT_REQUESTS_PER_CANDIDATE,
     get_candidate_context,
@@ -434,28 +434,3 @@ def _build_agentic_processing_summary(
 
 def _count_findings(findings: list[FinalFinding], status: FindingStatus) -> int:
     return sum(finding.status == status for finding in findings)
-
-
-class AgentOrchestrator:
-    """Compatibility wrapper for bounded review checks."""
-
-    def run(self, state: AgentState) -> AgentState:
-        return state
-
-    def run_review(
-        self,
-        article: Article,
-        registry_entries: list[RegistryEntry],
-        context_profiles: list[ContextProfile] | None = None,
-        max_review_candidates: int = 20,
-        max_steps_per_candidate: int = 5,
-        enable_fuzzy: bool = False,
-    ) -> CheckReport:
-        return run_bounded_review_check(
-            article,
-            registry_entries,
-            context_profiles=context_profiles,
-            max_review_candidates=max_review_candidates,
-            max_steps_per_candidate=max_steps_per_candidate,
-            enable_fuzzy=enable_fuzzy,
-        )

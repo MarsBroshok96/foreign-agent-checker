@@ -4,7 +4,6 @@ import pytest
 from pydantic import ValidationError
 
 from fa_checker.domain.enums import (
-    AgentActionType,
     ConfidenceLevel,
     DisambiguationDecision,
     EntityType,
@@ -17,7 +16,6 @@ from fa_checker.domain.enums import (
     RiskLevel,
 )
 from fa_checker.domain.models import (
-    AgentAction,
     Article,
     CandidateMatch,
     CheckReport,
@@ -110,19 +108,11 @@ def test_domain_models_can_be_instantiated() -> None:
         findings=[finding],
         limitations=[],
     )
-    action = AgentAction(
-        action_type=AgentActionType.CALL_TOOL,
-        tool_name="label_checker",
-        arguments={"mention": "Example Entity"},
-        reason="Check required label evidence.",
-    )
-
     assert context_profile.entity_name == "Example Entity"
     assert candidate.registry_entry == registry_entry
     assert disambiguation.requires_human_review is False
     assert label_check.label_quality == LabelQuality.ABSENT
     assert report.findings == [finding]
-    assert action.tool_name == "label_checker"
 
 
 def test_models_reject_invalid_scores() -> None:
@@ -142,4 +132,3 @@ def test_models_reject_invalid_scores() -> None:
             evidence=[],
             requires_disambiguation=True,
         )
-

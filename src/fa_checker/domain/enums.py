@@ -74,9 +74,3 @@ class ReportStatus(StrEnum):
     CONFIRMED_MATCH_FOUND = "confirmed_match_found"
     ERROR = "error"
 
-
-class AgentActionType(StrEnum):
-    CALL_TOOL = "call_tool"
-    FINALIZE = "finalize"
-    REQUEST_HUMAN_REVIEW = "request_human_review"
-
