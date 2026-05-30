@@ -24,13 +24,6 @@ Optional but required for agentic mode:
 Deterministic mode does not require Ollama.
 Agentic mode requires Ollama because weak candidates are reviewed by a local LLM.
 
-The project was developed and tested with:
-
-- Python 3.11
-- Poetry
-- Ollama local API at `http://localhost:11434`
-- `qwen2.5:14b-instruct`
-
 ## Modes
 
 ### Deterministic
@@ -71,7 +64,7 @@ poetry run fa-checker "https://www.rambler.ru/..." --mode agentic
 Clone the repository:
 
 ```bash
-git clone <REPOSITORY_URL>
+git clone git@github.com:MarsBroshok96/foreign-agent-checker.git
 cd foreign-agent-checker
 ```
 
