@@ -8,6 +8,29 @@ snapshot, runs deterministic checks, and renders a Markdown or JSON report. It
 helps surface text mentions, author signals, and full resource-link matches
 that may require human review. It does not provide legal conclusions.
 
+## Requirements
+
+Required:
+
+- Python 3.11+
+- Poetry
+- Make
+
+Optional but required for agentic mode:
+
+- Ollama running locally
+- Local model available in Ollama, recommended: `qwen2.5:14b-instruct`
+
+Deterministic mode does not require Ollama.
+Agentic mode requires Ollama because weak candidates are reviewed by a local LLM.
+
+The project was developed and tested with:
+
+- Python 3.11
+- Poetry
+- Ollama local API at `http://localhost:11434`
+- `qwen2.5:14b-instruct`
+
 ## Modes
 
 ### Deterministic
@@ -45,11 +68,37 @@ poetry run fa-checker "https://www.rambler.ru/..." --mode agentic
 
 ## Quickstart
 
+Clone the repository:
+
+```bash
+git clone <REPOSITORY_URL>
+cd foreign-agent-checker
+```
+
 Install dependencies:
 
 ```bash
 poetry install
 ```
+
+Run checks that do not require Ollama:
+
+```bash
+make check
+make eval-deterministic
+```
+
+Run deterministic mode on a Rambler article:
+
+```bash
+make run-deterministic-fuzzy URL=https://news.rambler.ru/...
+```
+Deterministic mode downloads and caches the Minjust registry automatically.
+
+
+## Ollama setup for agentic mode
+
+Agentic mode uses the local Ollama API.
 
 Copy optional environment defaults:
 
@@ -59,12 +108,49 @@ cp .env.example .env
 
 For agentic mode, run a local Ollama server. The default model is
 `qwen2.5:14b-instruct`.
+Any Ollama-compatible local model can be used, but agentic quality is model-dependent. Run make eval-agentic-trace after changing OLLAMA_MODEL.
+Agentic mode uses Ollama local API at OLLAMA_BASE_URL.
+Default: http://localhost:11434.
+
+Install or start Ollama according to your operating system, then pull the recommended model:
+
+Install Ollama server:
+
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+Pull ollama model:
+
+```bash
+ollama pull qwen2.5:14b-instruct
+```
+
+Start the Ollama server:
 
 ```bash
 ollama serve
 ```
 
-Common runs:
+In another terminal, verify that the model is available:
+
+```bash
+ollama list
+```
+Then run agentic mode (without or with fuzzy mode):
+
+```bash
+make run-agentic URL=https://news.rambler.ru/...
+make run-agentic-fuzzy URL=https://news.rambler.ru/...
+```
+
+Agentic eval with trace:
+
+```bash
+make eval-agentic-trace
+```
+
+## Common runs:
 
 ```bash
 poetry run fa-checker "URL" --mode deterministic
@@ -95,13 +181,9 @@ must not override the official registry.
 Runtime agentic review does not browse the internet. Profile enrichment is an
 offline/developer workflow documented in
 [docs/context_profile_enrichment_skill.md](docs/context_profile_enrichment_skill.md).
+Its tested with Open AI CODEX (docs/context-profile-enrichment/SKILL.md)
 
-Useful profile commands:
 
-```bash
-poetry run python scripts/profile_coverage.py data/registry/minjust_registry_latest.xlsx data/context/context_profiles.json --limit 50
-poetry run python scripts/validate_context_profiles.py data/context/context_profiles.json --registry-xlsx data/registry/minjust_registry_latest.xlsx
-```
 
 ## Reports
 
@@ -120,6 +202,7 @@ The eval set lives at `tests/eval_cases/basic_eval.json`; the runner is
 ```bash
 make eval-deterministic
 make eval-no-llm
+make eval-agentic
 make eval-agentic-trace
 ```
 
@@ -144,3 +227,47 @@ make check
 - Character offsets may be approximate after text normalization.
 - Agentic outcomes depend on local model quality and may safely degrade to
   human review.
+
+## Recommended verification flow
+
+For a quick review without LLM:
+
+```bash
+poetry install
+make check
+make eval-deterministic
+make eval-no-llm
+make run-deterministic-fuzzy URL=https://news.rambler.ru/...
+```
+For full agentic review:
+
+```bash
+ollama pull qwen2.5:14b-instruct
+ollama serve
+make eval-agentic-trace
+make run-agentic-fuzzy URL=https://news.rambler.ru/...
+```
+
+Expected behavior:
+
+make check should pass without Ollama.
+make eval-deterministic should pass without Ollama.
+make eval-no-llm should skip agentic cases.
+make eval-agentic-trace requires Ollama and shows whether cases used clean LLM calls or conservative fallback.
+
+
+## Project structure
+
+Important paths:
+
+| Path | Purpose |
+|---|---|
+| `src/fa_checker/pipeline.py` | Deterministic and agentic entry points. |
+| `src/fa_checker/matching/` | Exact, fuzzy, label, author, and resource-link checks. |
+| `src/fa_checker/agent/` | Bounded LLM review, action selection, disambiguation, context profiles. |
+| `src/fa_checker/reporting/` | Markdown/JSON report rendering and summary helpers. |
+| `scripts/run_eval.py` | Lightweight eval runner. |
+| `tests/eval_cases/basic_eval.json` | Machine-readable eval cases. |
+| `docs/architecture.md` | Runtime architecture. |
+| `docs/agent.md` | Agentic review behavior. |
+| `docs/eval_plan.md` | Eval design and criteria. |
