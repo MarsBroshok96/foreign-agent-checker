@@ -25,6 +25,9 @@ def make_finding(
     status: FindingStatus = FindingStatus.CONFIRMED,
     risk_level: RiskLevel = RiskLevel.HIGH,
     confidence_level: ConfidenceLevel = ConfidenceLevel.HIGH,
+    review_rationale: str | None = None,
+    evidence_text: str | None = None,
+    evidence_start: int = 0,
 ) -> FinalFinding:
     return FinalFinding(
         entity_name=entity_name,
@@ -37,12 +40,13 @@ def make_finding(
         evidence=[
             EvidenceFragment(
                 source=EvidenceSource.ARTICLE_TEXT,
-                text=f"Фрагмент с упоминанием: {mention_text}",
-                start=0,
-                end=20,
+                text=evidence_text or f"Фрагмент с упоминанием: {mention_text}",
+                start=evidence_start,
+                end=evidence_start + 20,
             )
         ],
         rationale="Strong exact registry match found, but label not found.",
+        review_rationale=review_rationale,
     )
 
 
@@ -84,11 +88,16 @@ def test_markdown_confirmed_finding_contains_required_fields() -> None:
 
     assert "Варламов Илья Александрович" in markdown
     assert "Илья Варламов" in markdown
-    assert "Уровень риска: high" in markdown
-    assert "Уверенность: high" in markdown
+    assert "Уровень риска:" not in markdown
+    assert "Уверенность:" not in markdown
+    assert "Статус находки: подтверждено" in markdown
     assert "маркировка не найдена" in markdown
-    assert "Strong exact registry match found, but label not found." in markdown
-    assert "Фрагмент с упоминанием: Илья Варламов" in markdown
+    assert "Strong exact registry match found, but label not found." not in markdown
+    assert "Фрагмент с упоминанием:" in markdown
+    assert "**Илья Варламов**" in markdown
+    assert "Фрагменты из источника:" in markdown
+    assert "Контекст:" in markdown
+    assert "article_text" not in markdown
 
 
 def test_markdown_human_review_wording() -> None:
@@ -171,7 +180,7 @@ def test_markdown_renders_context_evidence_from_offline_pipeline() -> None:
 
     markdown = report_to_markdown(report)
 
-    assert "Белый дом выступил" in markdown
+    assert "**Белый** дом выступил" in markdown
 
 
 def test_markdown_without_processing_summary_still_renders() -> None:
@@ -240,6 +249,22 @@ def test_markdown_agentic_rejected_only_report_is_clear() -> None:
     assert "Активные совпадения с реестром не подтверждены" in markdown
     assert "Отклонено после проверки: 1" in markdown
     assert "### Отклонены в ходе проверки" in markdown
+
+
+def test_markdown_has_two_blank_lines_before_grouped_candidate() -> None:
+    finding = make_finding(
+        entity_name="Белый Руслан Викторович",
+        mention_text="Белый",
+        requires_human_review=False,
+        status=FindingStatus.REJECTED,
+        risk_level=RiskLevel.LOW,
+        confidence_level=ConfidenceLevel.LOW,
+    )
+
+    markdown = report_to_markdown(make_report(findings=[finding]))
+
+    assert "Отклонённых кандидатов нет.\n###" not in markdown
+    assert "### Отклонены в ходе проверки\n\n\n#### 1. Белый Руслан Викторович" in markdown
     assert "Кандидат отклонён" in markdown
     assert "### Требуют ручной проверки\nКандидатов для ручной проверки нет." in markdown
 
@@ -310,3 +335,175 @@ def test_markdown_agentic_mixed_report_groups_confirmed_and_rejected() -> None:
     assert "### Отклонены в ходе проверки" in markdown
     assert "Варламов Илья Александрович" in markdown
     assert "Белый Руслан Викторович" in markdown
+
+
+def test_markdown_groups_duplicate_rejected_findings() -> None:
+    first = make_finding(
+        entity_name="Белый Руслан Викторович",
+        mention_text="Белый",
+        requires_human_review=False,
+        status=FindingStatus.REJECTED,
+        risk_level=RiskLevel.LOW,
+        confidence_level=ConfidenceLevel.LOW,
+        review_rationale="Контекст относится к Белому дому, а не к человеку.",
+        evidence_text="Первый фрагмент: Белый дом выступил с заявлением.",
+        evidence_start=0,
+    )
+    second = make_finding(
+        entity_name="Белый Руслан Викторович",
+        mention_text="Белый",
+        requires_human_review=False,
+        status=FindingStatus.REJECTED,
+        risk_level=RiskLevel.LOW,
+        confidence_level=ConfidenceLevel.LOW,
+        review_rationale="Контекст относится к выражению Белый дом, а не к человеку.",
+        evidence_text="Второй фрагмент: Белый дом повторил позицию.",
+        evidence_start=100,
+    )
+
+    markdown = report_to_markdown(
+        make_report(
+            status=ReportStatus.NO_MATCH,
+            findings=[first, second],
+            processing_summary=ProcessingSummary(
+                mode="agentic",
+                final_findings_total=2,
+                final_rejected_findings=2,
+            ),
+        )
+    )
+
+    assert markdown.count("#### 1. Белый Руслан Викторович") == 1
+    assert "Количество упоминаний/срабатываний: 2" in markdown
+    assert "Первый фрагмент" in markdown
+    assert "Второй фрагмент" in markdown
+    assert "Контекст относится к Белому дому" in markdown
+    assert "Контекст относится к выражению Белый дом" in markdown
+    assert "### Отклонены в ходе проверки" in markdown
+
+
+def test_markdown_does_not_merge_same_entity_with_different_status() -> None:
+    uncertain = make_finding(
+        entity_name="Белый Руслан Викторович",
+        mention_text="Белый",
+        requires_human_review=True,
+        status=FindingStatus.UNCERTAIN,
+        risk_level=RiskLevel.MEDIUM,
+        confidence_level=ConfidenceLevel.LOW,
+    )
+    rejected = make_finding(
+        entity_name="Белый Руслан Викторович",
+        mention_text="Белый",
+        requires_human_review=False,
+        status=FindingStatus.REJECTED,
+        risk_level=RiskLevel.LOW,
+        confidence_level=ConfidenceLevel.LOW,
+    )
+
+    markdown = report_to_markdown(
+        make_report(
+            status=ReportStatus.POTENTIAL_MATCH_FOUND,
+            findings=[uncertain, rejected],
+        )
+    )
+
+    assert "### Требуют ручной проверки" in markdown
+    assert "### Отклонены в ходе проверки" in markdown
+    assert markdown.count("Белый Руслан Викторович") >= 2
+
+
+def test_markdown_groups_duplicate_human_review_findings() -> None:
+    first = make_finding(
+        entity_name="Проект «После»",
+        mention_text="После",
+        requires_human_review=True,
+        status=FindingStatus.UNCERTAIN,
+        risk_level=RiskLevel.MEDIUM,
+        confidence_level=ConfidenceLevel.LOW,
+        evidence_text="После дождя случилось событие.",
+    )
+    second = make_finding(
+        entity_name="Проект «После»",
+        mention_text="После",
+        requires_human_review=True,
+        status=FindingStatus.UNCERTAIN,
+        risk_level=RiskLevel.MEDIUM,
+        confidence_level=ConfidenceLevel.LOW,
+        evidence_text="После встречи участники разошлись.",
+        evidence_start=50,
+    )
+
+    markdown = report_to_markdown(
+        make_report(
+            status=ReportStatus.POTENTIAL_MATCH_FOUND,
+            findings=[first, second],
+        )
+    )
+
+    assert "### Требуют ручной проверки" in markdown
+    assert markdown.count("#### 1. Проект «После»") == 1
+    assert "Количество упоминаний/срабатываний: 2" in markdown
+
+
+def test_markdown_renders_review_rationale_separately() -> None:
+    finding = make_finding(
+        status=FindingStatus.REJECTED,
+        risk_level=RiskLevel.LOW,
+        confidence_level=ConfidenceLevel.LOW,
+        requires_human_review=False,
+        review_rationale="Контекст относится к Белому дому, а не к человеку.",
+    )
+
+    markdown = report_to_markdown(make_report(findings=[finding]))
+
+    assert "Обоснование deterministic/risk layer" not in markdown
+    assert "Обоснование agentic review: Контекст относится к Белому дому" in markdown
+
+
+def test_markdown_trims_long_evidence_without_modifying_report() -> None:
+    long_text = "Белый " + ("очень длинный фрагмент " * 40)
+    finding = make_finding(
+        mention_text="Белый",
+        evidence_text=long_text,
+    )
+    report = make_report(findings=[finding])
+
+    markdown = report_to_markdown(report)
+
+    assert "..." in markdown
+    assert report.findings[0].evidence[0].text == long_text
+
+
+def test_markdown_highlights_first_matching_mention() -> None:
+    finding = make_finding(
+        mention_text="Белый",
+        evidence_text="Белый дом выступил с заявлением.",
+    )
+
+    markdown = report_to_markdown(make_report(findings=[finding]))
+
+    assert "**Белый** дом" in markdown
+
+
+def test_markdown_rejected_only_summary_mentions_auditability() -> None:
+    rejected = make_finding(
+        status=FindingStatus.REJECTED,
+        risk_level=RiskLevel.LOW,
+        confidence_level=ConfidenceLevel.LOW,
+        requires_human_review=False,
+    )
+
+    markdown = report_to_markdown(
+        make_report(
+            status=ReportStatus.NO_MATCH,
+            findings=[rejected],
+            processing_summary=ProcessingSummary(
+                mode="agentic",
+                final_findings_total=1,
+                final_rejected_findings=1,
+            ),
+        )
+    )
+
+    assert "Активные совпадения с реестром не подтверждены" in markdown
+    assert "показаны ниже для аудита" in markdown

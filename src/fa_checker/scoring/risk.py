@@ -57,6 +57,7 @@ def score_candidate_match(
         requires_human_review=requires_review,
         evidence=match.evidence,
         rationale=rationale,
+        review_rationale=disambiguation.rationale if disambiguation is not None else None,
     )
 
 

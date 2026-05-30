@@ -1,7 +1,15 @@
 """Human-readable Markdown report rendering."""
 
+from dataclasses import dataclass, field
+
+from fa_checker.article.normalizer import normalize_for_display
 from fa_checker.domain.enums import FindingStatus, LabelStatus, ReportStatus, RiskLevel
-from fa_checker.domain.models import CheckReport, FinalFinding, ProcessingSummary
+from fa_checker.domain.models import (
+    CheckReport,
+    EvidenceFragment,
+    FinalFinding,
+    ProcessingSummary,
+)
 
 REPORT_STATUS_TEXT = {
     ReportStatus.NO_MATCH: "Совпадения с реестром не выявлены текущей проверкой.",
@@ -19,12 +27,19 @@ LABEL_STATUS_TEXT = {
     LabelStatus.NOT_CHECKED: "проверка маркировки не выполнялась",
 }
 
-RISK_ORDER = {
-    RiskLevel.NO_MATCH: 0,
-    RiskLevel.LOW: 1,
-    RiskLevel.MEDIUM: 2,
-    RiskLevel.HIGH: 3,
-}
+@dataclass
+class GroupedFinding:
+    entity_name: str
+    status: FindingStatus
+    risk_level: RiskLevel
+    confidence_level: object
+    label_status: LabelStatus
+    requires_human_review: bool
+    rationale: str
+    review_rationales: list[str] = field(default_factory=list)
+    mention_texts: list[str] = field(default_factory=list)
+    evidence_fragments: list[EvidenceFragment] = field(default_factory=list)
+    occurrences_count: int = 0
 
 
 def report_to_markdown(report: CheckReport) -> str:
@@ -62,10 +77,9 @@ def _metadata_lines(report: CheckReport) -> list[str]:
     lines.append(f"- Проверено: {_format_optional(report.checked_at)}")
     if report.registry_snapshot_date is not None:
         lines.append(f"- Дата снимка реестра: {_format_optional(report.registry_snapshot_date)}")
-    mode = report.processing_summary.mode if report.processing_summary is not None else "не указано"
-    lines.append(f"- Режим проверки: {mode}")
-    lines.append(f"- Итоговый статус: {report.status.value}")
-    lines.append(f"- Описание статуса: {_report_status_text(report.status)}")
+    mode = report.processing_summary.mode if report.processing_summary is not None else None
+    lines.append(f"- Режим проверки: {_mode_text(mode)}")
+    lines.append(f"- Итоговый статус: {_report_status_text(report.status)}")
     return lines
 
 
@@ -91,12 +105,11 @@ def _executive_summary_lines(report: CheckReport) -> list[str]:
         and active_without_review == 0
     ):
         lines.append(
-            "Активные совпадения с реестром не подтверждены; часть кандидатов "
-            "была отклонена в ходе проверки."
+            "Активные совпадения с реестром не подтверждены; отклонённые "
+            "кандидаты показаны ниже для аудита."
         )
     if summary.final_findings_total == 0:
         lines.append("На текущем уровне проверки совпадения с реестром не выявлены.")
-    lines.append(f"- Наивысший уровень риска: {_highest_risk_level(report)}")
     return lines
 
 
@@ -109,7 +122,6 @@ def _legacy_summary_lines(report: CheckReport) -> list[str]:
         f"- Всего кандидатов/находок в отчёте: {len(report.findings)}",
         f"- Требуют ручной проверки: {review_count}",
         f"- Отклонено: {rejected_count}",
-        f"- Наивысший уровень риска: {_highest_risk_level(report)}",
     ]
 
 
@@ -135,7 +147,7 @@ def _agentic_summary_lines(summary: ProcessingSummary | None) -> list[str]:
         return ["Agentic review не применялся."]
     return [
         f"- Agentic review: {_format_bool(summary.agentic_review_applied)}",
-        f"- Проверено weak-кандидатов: {summary.agentic_reviewed_candidates}",
+        f"- Проверено слабых кандидатов: {summary.agentic_reviewed_candidates}",
         f"- Подтверждено: {summary.agentic_confirmed_after_review}",
         f"- Вероятные совпадения: {summary.agentic_probable_after_review}",
         f"- Отклонено: {summary.agentic_rejected_after_review}",
@@ -198,30 +210,114 @@ def _finding_section_lines(
     if not findings:
         lines.append(empty_text)
         return lines
-    for index, finding in enumerate(findings, start=1):
+    for index, finding in enumerate(_group_findings(findings), start=1):
+        lines.extend(["", ""])
         lines.extend(_finding_lines(index, finding, rejected=rejected))
     return lines
 
 
-def _finding_lines(index: int, finding: FinalFinding, rejected: bool = False) -> list[str]:
+def _finding_lines(index: int, finding: GroupedFinding, rejected: bool = False) -> list[str]:
     lines = [
         f"#### {index}. {finding.entity_name}",
         "",
-        f"- Упоминание: {finding.mention_text}",
-        f"- Статус находки: {finding.status.value}",
-        f"- Уровень риска: {finding.risk_level.value}",
-        f"- Уверенность: {finding.confidence_level.value}",
+        f"- Количество упоминаний/срабатываний: {finding.occurrences_count}",
+        f"- Варианты упоминания: {', '.join(finding.mention_texts)}",
+        f"- Статус находки: {_finding_status_text(finding.status)}",
         f"- Статус маркировки: {_label_status_text(finding.label_status)}",
         f"- Требуется ручная проверка: {_format_bool(finding.requires_human_review)}",
-        f"- Обоснование: {finding.rationale}",
     ]
+    review_rationale = _combined_review_rationale(finding.review_rationales)
+    if review_rationale:
+        lines.append(f"- Обоснование agentic review: {review_rationale}")
     if rejected:
         lines.append("- Интерпретация: Кандидат отклонён в ходе disambiguation/review.")
-    if finding.evidence:
-        lines.append("- Фрагменты доказательств:")
-        for evidence in finding.evidence:
-            lines.append(f"  - `{evidence.source.value}`: {evidence.text}")
+    if finding.evidence_fragments:
+        lines.append("- Фрагменты из источника:")
+        for evidence_index, evidence in enumerate(finding.evidence_fragments, start=1):
+            evidence_text = _format_evidence_text(evidence.text, finding.mention_texts)
+            lines.append(f"  {evidence_index}. {_evidence_source_text(evidence)}: {evidence_text}")
     return lines
+
+
+def _group_findings(findings: list[FinalFinding]) -> list[GroupedFinding]:
+    groups: dict[tuple, GroupedFinding] = {}
+    for finding in findings:
+        key = (
+            finding.entity_name,
+            finding.status,
+            finding.risk_level,
+            finding.confidence_level,
+            finding.label_status,
+            finding.requires_human_review,
+            finding.rationale,
+        )
+        if key not in groups:
+            groups[key] = GroupedFinding(
+                entity_name=finding.entity_name,
+                status=finding.status,
+                risk_level=finding.risk_level,
+                confidence_level=finding.confidence_level,
+                label_status=finding.label_status,
+                requires_human_review=finding.requires_human_review,
+                rationale=finding.rationale,
+            )
+        group = groups[key]
+        group.occurrences_count += 1
+        if finding.mention_text not in group.mention_texts:
+            group.mention_texts.append(finding.mention_text)
+        if finding.review_rationale and finding.review_rationale not in group.review_rationales:
+            group.review_rationales.append(finding.review_rationale)
+        _extend_evidence(group, finding.evidence)
+    return list(groups.values())
+
+
+def _extend_evidence(group: GroupedFinding, evidence_fragments: list[EvidenceFragment]) -> None:
+    existing_keys = {
+        (evidence.source, evidence.text, evidence.start, evidence.end)
+        for evidence in group.evidence_fragments
+    }
+    for evidence in evidence_fragments:
+        key = (evidence.source, evidence.text, evidence.start, evidence.end)
+        if key not in existing_keys:
+            group.evidence_fragments.append(evidence)
+            existing_keys.add(key)
+
+
+def _format_evidence_text(text: str, mention_texts: list[str]) -> str:
+    trimmed = _trim_evidence_text(text)
+    return _highlight_first_mention(trimmed, mention_texts)
+
+
+def _trim_evidence_text(text: str, max_chars: int = 500) -> str:
+    normalized = normalize_for_display(text)
+    if len(normalized) <= max_chars:
+        return normalized
+    return normalized[:max_chars].rstrip() + "..."
+
+
+def _highlight_first_mention(text: str, mention_texts: list[str]) -> str:
+    lower_text = text.lower()
+    for mention in mention_texts:
+        if not mention:
+            continue
+        index = lower_text.find(mention.lower())
+        if index == -1:
+            continue
+        end = index + len(mention)
+        return f"{text[:index]}**{text[index:end]}**{text[end:]}"
+    return text
+
+
+def _combined_review_rationale(rationales: list[str]) -> str | None:
+    if not rationales:
+        return None
+    return "; ".join(rationales)
+
+
+def _evidence_source_text(evidence: EvidenceFragment) -> str:
+    if evidence.source.value == "article_text":
+        return "Контекст"
+    return evidence.source.value
 
 
 def _limitations_lines(report: CheckReport) -> list[str]:
@@ -244,10 +340,12 @@ def _format_bool(value: bool) -> str:
     return "да" if value else "нет"
 
 
-def _highest_risk_level(report: CheckReport) -> str:
-    if not report.findings:
-        return RiskLevel.NO_MATCH.value
-    return max(report.findings, key=lambda finding: RISK_ORDER[finding.risk_level]).risk_level.value
+def _mode_text(mode: str | None) -> str:
+    if mode == "deterministic":
+        return "детерминированный"
+    if mode == "agentic":
+        return "agentic review"
+    return "не указано"
 
 
 def _report_status_text(status: ReportStatus) -> str:
@@ -256,3 +354,13 @@ def _report_status_text(status: ReportStatus) -> str:
 
 def _label_status_text(status: LabelStatus) -> str:
     return LABEL_STATUS_TEXT[status]
+
+
+def _finding_status_text(status: FindingStatus) -> str:
+    status_text = {
+        FindingStatus.CONFIRMED: "подтверждено",
+        FindingStatus.PROBABLE: "вероятное совпадение",
+        FindingStatus.UNCERTAIN: "не определено",
+        FindingStatus.REJECTED: "отклонён",
+    }
+    return status_text[status]

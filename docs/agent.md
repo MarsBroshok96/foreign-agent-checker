@@ -113,6 +113,9 @@ Agentic review can reject weak candidates. If all candidates are rejected, the
 overall report status can become `no_match`; rejected candidates remain in the
 report for auditability.
 
+When available, the disambiguation rationale from agentic review is shown in
+the final report separately from deterministic risk-scoring rationale.
+
 The runtime agent does not browse the internet.
 
 # Available tools

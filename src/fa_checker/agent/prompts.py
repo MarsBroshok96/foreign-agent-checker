@@ -34,6 +34,7 @@ Rules:
 - Choose different_entity when the provided context clearly refers to a
   different person, organization, institution, place, common phrase,
   color/adjective/common-word usage, or unrelated grammatical use.
+- The rationale value must be written in Russian.
 - Return JSON only, with no Markdown or extra text.
 
 Decision meanings:
@@ -65,7 +66,7 @@ Required JSON shape:
   "decision": "same_entity | likely_same_entity | uncertain | different_entity",
   "confidence_score": 0.0,
   "requires_human_review": true,
-  "rationale": "short explanation grounded in article context"
+  "rationale": "short Russian explanation grounded in article context"
 }}
 
 Candidate mention:

@@ -121,6 +121,10 @@ If all weak candidates are rejected, the overall status may be `no_match` while
 the report still lists rejected candidates for auditability. The report is a
 compliance-assistance artifact, not a legal verdict.
 
+For readability, Markdown groups repeated findings with the same entity and
+status while preserving all evidence fragments. JSON output keeps raw findings
+unmerged for machine processing and audit.
+
 ## Test
 ```bash
 make test

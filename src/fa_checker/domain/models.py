@@ -121,6 +121,7 @@ class FinalFinding(BaseModel):
     requires_human_review: bool
     evidence: list[EvidenceFragment] = Field(default_factory=list)
     rationale: str
+    review_rationale: str | None = None
 
 
 class ProcessingSummary(BaseModel):

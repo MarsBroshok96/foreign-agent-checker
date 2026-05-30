@@ -98,3 +98,21 @@ def test_report_to_json_includes_processing_summary() -> None:
 
     assert parsed["processing_summary"]["mode"] == "deterministic"
     assert parsed["processing_summary"]["deterministic_candidates_total"] == 1
+
+
+def test_report_to_json_preserves_raw_duplicate_findings_and_review_rationale() -> None:
+    report = make_report()
+    duplicate = report.findings[0].model_copy(
+        update={
+            "review_rationale": "Context refers to the White House, not the person.",
+        }
+    )
+    report = report.model_copy(update={"findings": [report.findings[0], duplicate]})
+
+    parsed = json.loads(report_to_json(report))
+
+    assert len(parsed["findings"]) == 2
+    assert (
+        parsed["findings"][1]["review_rationale"]
+        == "Context refers to the White House, not the person."
+    )

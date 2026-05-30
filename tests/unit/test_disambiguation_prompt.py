@@ -87,6 +87,7 @@ def test_disambiguation_prompt_requires_json_only_output() -> None:
 
     assert "Return JSON only" in prompt
     assert '"decision"' in prompt
+    assert "rationale value must be written in Russian" in prompt
 
 
 def test_disambiguation_prompt_states_boundaries() -> None:

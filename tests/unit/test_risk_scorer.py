@@ -249,6 +249,7 @@ def test_different_entity_disambiguation_scores_rejected_low_risk() -> None:
         label_status=LabelStatus.PRESENT,
         requires_human_review=False,
     )
+    assert finding.review_rationale == "Structured disambiguation fixture."
 
 
 def test_batch_scoring_with_empty_list_returns_empty_list() -> None:
