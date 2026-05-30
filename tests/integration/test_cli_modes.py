@@ -52,6 +52,23 @@ def make_registry_entry() -> RegistryEntry:
     )
 
 
+def test_cli_help_works() -> None:
+    result = CliRunner().invoke(app, ["--help"])
+
+    assert result.exit_code == 0
+    assert "Run article check" in result.output
+
+
+def test_cli_rejects_invalid_output_format() -> None:
+    result = CliRunner().invoke(
+        app,
+        ["https://www.rambler.ru/example", "--output-format", "xml"],
+    )
+
+    assert result.exit_code == 1
+    assert "--output-format must be" in result.output
+
+
 def test_cli_deterministic_mode_uses_deterministic_pipeline(monkeypatch, tmp_path) -> None:
     registry_path = tmp_path / "registry.xlsx"
     write_registry_xlsx(registry_path)

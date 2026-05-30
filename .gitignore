@@ -25,11 +25,14 @@ runs/*
 !runs/.gitkeep
 
 # Registry/cache data
-data/registry/*
+data/registry/*.xls
+data/registry/*.xlsx
+data/registry/*.xlsm
 !data/registry/.gitkeep
 data/samples/*
 
 # OS / IDE
 .DS_Store
+*:Zone.Identifier
 .idea/
 .vscode/

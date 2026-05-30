@@ -28,7 +28,6 @@ from fa_checker.domain.models import (
     LabelCheckResult,
     RegistryEntry,
 )
-from fa_checker.pipeline import run_check
 
 
 def test_domain_models_can_be_instantiated() -> None:
@@ -143,16 +142,4 @@ def test_models_reject_invalid_scores() -> None:
             evidence=[],
             requires_disambiguation=True,
         )
-
-
-def test_run_check_returns_placeholder_report() -> None:
-    report = run_check("https://www.rambler.ru/example")
-
-    assert isinstance(report, CheckReport)
-    assert report.article_url == "https://www.rambler.ru/example"
-    assert report.status == ReportStatus.NO_MATCH
-    assert report.findings == []
-    assert report.limitations == [
-        "Business logic is not implemented yet; this is a scaffold report."
-    ]
 

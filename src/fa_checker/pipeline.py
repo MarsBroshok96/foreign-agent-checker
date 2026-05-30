@@ -21,7 +21,6 @@ from fa_checker.matching.labels import check_label
 from fa_checker.matching.resource_links import find_resource_link_matches
 from fa_checker.scoring.risk import ScoringInput, score_candidate_matches
 
-SCAFFOLD_LIMITATION = "Business logic is not implemented yet; this is a scaffold report."
 OFFLINE_LIMITATION = (
     "Offline deterministic check only; fuzzy matching, LLM disambiguation, "
     "and agentic recall pass are not applied."
@@ -157,20 +156,6 @@ def _build_check_report(
             )
         ],
         processing_summary=processing_summary,
-    )
-
-
-def run_check(url: str) -> CheckReport:
-    """Return a placeholder report while the real pipeline is still scaffolded."""
-    return CheckReport(
-        article_url=url,
-        article_title=None,
-        article_author=None,
-        checked_at=datetime.now(UTC),
-        registry_snapshot_date=None,
-        status=ReportStatus.NO_MATCH,
-        findings=[],
-        limitations=[SCAFFOLD_LIMITATION],
     )
 
 
