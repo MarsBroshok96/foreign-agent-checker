@@ -30,10 +30,14 @@ def make_finding(
     review_rationale: str | None = None,
     evidence_text: str | None = None,
     evidence_start: int = 0,
+    match_type=None,
+    match_score: float | None = None,
 ) -> FinalFinding:
     return FinalFinding(
         entity_name=entity_name,
         mention_text=mention_text,
+        match_type=match_type,
+        match_score=match_score,
         status=status,
         risk_level=risk_level,
         confidence_level=confidence_level,
@@ -223,6 +227,8 @@ def test_markdown_deterministic_report_summary_from_pipeline() -> None:
     assert "Кандидатов найдено deterministic layer: 1" in markdown
     assert "Сильные совпадения: 1" in markdown
     assert "Слабые совпадения: 0" in markdown
+    assert "Fuzzy matching: выключен" in markdown
+    assert "Fuzzy-кандидаты: 0" in markdown
     assert "Требуют ручной проверки: 1" in markdown
 
 
@@ -514,6 +520,36 @@ def test_markdown_rejected_only_summary_mentions_auditability() -> None:
 
     assert "Активные совпадения с реестром не подтверждены" in markdown
     assert "показаны ниже для аудита" in markdown
+
+
+def test_markdown_renders_fuzzy_match_type_and_score() -> None:
+    finding = make_finding(
+        mention_text="варламова",
+        status=FindingStatus.UNCERTAIN,
+        risk_level=RiskLevel.MEDIUM,
+        confidence_level=ConfidenceLevel.LOW,
+        match_type="fuzzy",
+        match_score=0.88,
+    )
+
+    markdown = report_to_markdown(
+        make_report(
+            status=ReportStatus.POTENTIAL_MATCH_FOUND,
+            findings=[finding],
+            processing_summary=ProcessingSummary(
+                fuzzy_enabled=True,
+                deterministic_fuzzy_candidates=1,
+                final_findings_total=1,
+                final_uncertain_findings=1,
+                final_requires_human_review=1,
+            ),
+        )
+    )
+
+    assert "Fuzzy matching: включён только для персон" in markdown
+    assert "Fuzzy-кандидаты: 1" in markdown
+    assert "Тип совпадения: fuzzy" in markdown
+    assert "Score: 0.88" in markdown
 
 
 def test_markdown_renders_author_check_strong_match() -> None:

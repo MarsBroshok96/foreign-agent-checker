@@ -74,6 +74,8 @@ def make_report() -> CheckReport:
             mode="deterministic",
             deterministic_candidates_total=1,
             deterministic_strong_candidates=1,
+            deterministic_fuzzy_candidates=1,
+            fuzzy_enabled=True,
             final_findings_total=1,
             final_confirmed_findings=1,
             resource_link_matches_total=1,
@@ -124,6 +126,8 @@ def test_report_to_json_includes_processing_summary() -> None:
     assert parsed["processing_summary"]["mode"] == "deterministic"
     assert parsed["processing_summary"]["deterministic_candidates_total"] == 1
     assert parsed["processing_summary"]["resource_link_matches_total"] == 1
+    assert parsed["processing_summary"]["fuzzy_enabled"] is True
+    assert parsed["processing_summary"]["deterministic_fuzzy_candidates"] == 1
 
 
 def test_report_to_json_includes_author_check_and_resource_link_matches() -> None:

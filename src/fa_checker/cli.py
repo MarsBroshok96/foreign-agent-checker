@@ -81,6 +81,16 @@ def main(
             help="Path to local context profiles JSON for agentic mode.",
         ),
     ] = Path("data/context/context_profiles.json"),
+    enable_fuzzy: Annotated[
+        bool,
+        typer.Option(
+            "--enable-fuzzy",
+            help=(
+                "Enable conservative person-only fuzzy recall. Produces weak "
+                "candidates that require review."
+            ),
+        ),
+    ] = False,
 ) -> None:
     """Run article check and render a report."""
     if mode not in {"deterministic", "agentic"}:
@@ -123,10 +133,15 @@ def main(
                 article,
                 registry_entries,
                 context_profiles=context_profiles,
+                enable_fuzzy=enable_fuzzy,
             )
         else:
             status_console.print("[cyan]Running deterministic check...[/cyan]")
-            report = run_offline_check(article, registry_entries)
+            report = run_offline_check(
+                article,
+                registry_entries,
+                enable_fuzzy=enable_fuzzy,
+            )
 
         status_console.print("[cyan]Rendering report...[/cyan]")
         rendered = (

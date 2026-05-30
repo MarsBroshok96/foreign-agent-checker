@@ -50,6 +50,8 @@ def score_candidate_match(
     return FinalFinding(
         entity_name=match.registry_entry.full_name,
         mention_text=match.mention_text,
+        match_type=match.match_type,
+        match_score=match.match_score,
         status=status,
         risk_level=risk_level,
         confidence_level=confidence_level,

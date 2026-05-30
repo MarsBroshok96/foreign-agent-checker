@@ -1,4 +1,4 @@
-.PHONY: help install test lint format check run run-deterministic run-agentic run-json run-agentic-json run-local run-local-json validate-profiles profile-coverage clean
+.PHONY: help install test lint format check run run-deterministic run-agentic run-json run-agentic-json run-deterministic-fuzzy run-agentic-fuzzy run-local run-local-json validate-profiles profile-coverage clean
 
 URL ?= https://www.rambler.ru/example
 REGISTRY_PATH ?= data/samples/registries/minjust_export_sample.xlsx
@@ -15,6 +15,8 @@ help:
 	@echo "  run-agentic Run bounded LLM action loop. Usage: make run-agentic URL=\"https://...\""
 	@echo "  run-json  Run deterministic mode with JSON output"
 	@echo "  run-agentic-json Run agentic mode with JSON output"
+	@echo "  run-deterministic-fuzzy Run deterministic mode with person-only fuzzy recall"
+	@echo "  run-agentic-fuzzy Run agentic mode with person-only fuzzy recall"
 	@echo "  run-local Run CLI with local registry XLSX"
 	@echo "  run-local-json Run CLI with local registry XLSX and JSON output"
 	@echo "  validate-profiles Validate example context profiles"
@@ -49,6 +51,12 @@ run-json:
 
 run-agentic-json:
 	poetry run fa-checker "$(URL)" --mode agentic --output-format json
+
+run-deterministic-fuzzy:
+	poetry run fa-checker "$(URL)" --mode deterministic --enable-fuzzy
+
+run-agentic-fuzzy:
+	poetry run fa-checker "$(URL)" --mode agentic --enable-fuzzy
 
 run-local:
 	poetry run fa-checker "$(URL)" --mode deterministic --registry-path "$(REGISTRY_PATH)"

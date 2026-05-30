@@ -137,8 +137,14 @@ def test_cli_agentic_mode_loads_context_profiles(monkeypatch, tmp_path) -> None:
         calls["path"] = path
         return profiles
 
-    def fake_run_agentic_review_check(article, registry_entries, context_profiles=None):
+    def fake_run_agentic_review_check(
+        article,
+        registry_entries,
+        context_profiles=None,
+        enable_fuzzy=False,
+    ):
         calls["context_profiles"] = context_profiles
+        calls["enable_fuzzy"] = enable_fuzzy
         return make_agentic_report()
 
     monkeypatch.setattr(cli, "load_context_profiles", fake_load_context_profiles)
@@ -160,6 +166,7 @@ def test_cli_agentic_mode_loads_context_profiles(monkeypatch, tmp_path) -> None:
     assert result.exit_code == 0
     assert calls["path"] == context_profiles_path
     assert calls["context_profiles"] is profiles
+    assert calls["enable_fuzzy"] is False
 
 
 def test_cli_agentic_mode_uses_enriched_context_profiles_by_default(
@@ -176,8 +183,14 @@ def test_cli_agentic_mode_uses_enriched_context_profiles_by_default(
         calls["path"] = path
         return profiles
 
-    def fake_run_agentic_review_check(article, registry_entries, context_profiles=None):
+    def fake_run_agentic_review_check(
+        article,
+        registry_entries,
+        context_profiles=None,
+        enable_fuzzy=False,
+    ):
         calls["context_profiles"] = context_profiles
+        calls["enable_fuzzy"] = enable_fuzzy
         return make_agentic_report()
 
     monkeypatch.setattr(cli, "load_context_profiles", fake_load_context_profiles)
@@ -197,6 +210,7 @@ def test_cli_agentic_mode_uses_enriched_context_profiles_by_default(
     assert result.exit_code == 0
     assert calls["path"] == Path("data/context/context_profiles.json")
     assert calls["context_profiles"] is profiles
+    assert calls["enable_fuzzy"] is False
 
 
 def test_cli_json_output_works_in_deterministic_mode(monkeypatch, tmp_path) -> None:
@@ -265,8 +279,14 @@ def test_cli_missing_context_profiles_file_does_not_crash(monkeypatch, tmp_path)
     write_registry_xlsx(registry_path)
     monkeypatch.setattr(cli, "load_rambler_article", lambda url: make_article())
 
-    def fake_run_agentic_review_check(article, registry_entries, context_profiles=None):
+    def fake_run_agentic_review_check(
+        article,
+        registry_entries,
+        context_profiles=None,
+        enable_fuzzy=False,
+    ):
         assert context_profiles == []
+        assert enable_fuzzy is False
         return make_agentic_report()
 
     monkeypatch.setattr(cli, "run_agentic_review_check", fake_run_agentic_review_check)
@@ -309,3 +329,100 @@ def test_cli_deterministic_mode_does_not_call_agentic_review(monkeypatch, tmp_pa
     )
 
     assert result.exit_code == 0
+
+
+def test_cli_enable_fuzzy_passes_flag_to_deterministic_pipeline(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    registry_path = tmp_path / "registry.xlsx"
+    write_registry_xlsx(registry_path)
+    calls = {}
+    monkeypatch.setattr(cli, "load_rambler_article", lambda url: make_article())
+
+    def fake_run_offline_check(article, registry_entries, enable_fuzzy=False):
+        calls["enable_fuzzy"] = enable_fuzzy
+        return make_agentic_report()
+
+    monkeypatch.setattr(cli, "run_offline_check", fake_run_offline_check)
+
+    result = CliRunner().invoke(
+        app,
+        [
+            "https://www.rambler.ru/news/example",
+            "--mode",
+            "deterministic",
+            "--registry-path",
+            str(registry_path),
+            "--enable-fuzzy",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert calls["enable_fuzzy"] is True
+
+
+def test_cli_deterministic_mode_passes_fuzzy_false_by_default(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    registry_path = tmp_path / "registry.xlsx"
+    write_registry_xlsx(registry_path)
+    calls = {}
+    monkeypatch.setattr(cli, "load_rambler_article", lambda url: make_article())
+
+    def fake_run_offline_check(article, registry_entries, enable_fuzzy=False):
+        calls["enable_fuzzy"] = enable_fuzzy
+        return make_agentic_report()
+
+    monkeypatch.setattr(cli, "run_offline_check", fake_run_offline_check)
+
+    result = CliRunner().invoke(
+        app,
+        [
+            "https://www.rambler.ru/news/example",
+            "--mode",
+            "deterministic",
+            "--registry-path",
+            str(registry_path),
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert calls["enable_fuzzy"] is False
+
+
+def test_cli_enable_fuzzy_passes_flag_to_agentic_pipeline(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    registry_path = tmp_path / "registry.xlsx"
+    write_registry_xlsx(registry_path)
+    calls = {}
+    monkeypatch.setattr(cli, "load_rambler_article", lambda url: make_article())
+
+    def fake_run_agentic_review_check(
+        article,
+        registry_entries,
+        context_profiles=None,
+        enable_fuzzy=False,
+    ):
+        calls["enable_fuzzy"] = enable_fuzzy
+        return make_agentic_report()
+
+    monkeypatch.setattr(cli, "run_agentic_review_check", fake_run_agentic_review_check)
+
+    result = CliRunner().invoke(
+        app,
+        [
+            "https://www.rambler.ru/news/example",
+            "--mode",
+            "agentic",
+            "--registry-path",
+            str(registry_path),
+            "--enable-fuzzy",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert calls["enable_fuzzy"] is True

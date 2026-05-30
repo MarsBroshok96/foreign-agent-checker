@@ -16,6 +16,7 @@ from fa_checker.agent.tools import (
 from fa_checker.domain.enums import (
     DisambiguationDecision,
     FindingStatus,
+    MatchType,
     ReportStatus,
 )
 from fa_checker.domain.models import (
@@ -30,12 +31,15 @@ from fa_checker.pipeline import run_deterministic_analysis
 from fa_checker.scoring.risk import score_candidate_match
 
 AGENT_REVIEW_LIMITATION = "Bounded LLM review applied to weak candidates."
-NO_ENRICHMENT_LIMITATION = (
-    "No fuzzy search, entity extraction, or internet enrichment was applied."
+NO_ENRICHMENT_LIMITATION = "No entity extraction or internet enrichment was applied."
+NO_FUZZY_ENRICHMENT_LIMITATION = (
+    "No person-only fuzzy recall, entity extraction, or internet enrichment was applied."
 )
-DETERMINISTIC_BASELINE_LIMITATION = (
-    "Deterministic baseline ran before bounded review; fuzzy matching and "
-    "agentic recall pass are not applied."
+DETERMINISTIC_BASELINE_WITH_FUZZY_LIMITATION = (
+    "Deterministic baseline ran before bounded review with person-only fuzzy recall enabled."
+)
+DETERMINISTIC_BASELINE_WITHOUT_FUZZY_LIMITATION = (
+    "Deterministic baseline ran before bounded review; person-only fuzzy recall was not enabled."
 )
 
 
@@ -45,16 +49,24 @@ def run_bounded_review_check(
     context_profiles: list[ContextProfile] | None = None,
     max_review_candidates: int = 20,
     max_steps_per_candidate: int = 5,
+    enable_fuzzy: bool = False,
 ) -> CheckReport:
     """Run deterministic baseline and bounded LLM review for weak candidates."""
-    analysis = run_deterministic_analysis(article, registry_entries)
+    analysis = run_deterministic_analysis(
+        article,
+        registry_entries,
+        enable_fuzzy=enable_fuzzy,
+    )
     if not analysis.requires_agent_review:
         return _report_without_review(analysis.base_report)
 
     state = build_agent_review_state(analysis)
     profiles = context_profiles or []
     disambiguation_by_candidate: dict[int, DisambiguationResult] = {}
-    limitations = _agent_limitations(analysis.limitations)
+    limitations = _agent_limitations(
+        analysis.limitations,
+        fuzzy_enabled=_analysis_fuzzy_enabled(analysis),
+    )
 
     review_candidates = state.review_candidates[: max(0, max_review_candidates)]
     reviewed_candidate_indexes = [
@@ -118,16 +130,28 @@ def _report_without_review(report: CheckReport) -> CheckReport:
     return report.model_copy(update={"limitations": _dedupe_limitations(limitations)})
 
 
-def _agent_limitations(baseline_limitations: list[str]) -> list[str]:
+def _agent_limitations(
+    baseline_limitations: list[str],
+    fuzzy_enabled: bool,
+) -> list[str]:
     limitations = [
-        DETERMINISTIC_BASELINE_LIMITATION,
+        (
+            DETERMINISTIC_BASELINE_WITH_FUZZY_LIMITATION
+            if fuzzy_enabled
+            else DETERMINISTIC_BASELINE_WITHOUT_FUZZY_LIMITATION
+        ),
         AGENT_REVIEW_LIMITATION,
-        NO_ENRICHMENT_LIMITATION,
+        NO_ENRICHMENT_LIMITATION if fuzzy_enabled else NO_FUZZY_ENRICHMENT_LIMITATION,
     ]
     for limitation in baseline_limitations:
         if limitation not in limitations and "LLM disambiguation" not in limitation:
             limitations.append(limitation)
     return limitations
+
+
+def _analysis_fuzzy_enabled(analysis) -> bool:
+    summary = analysis.base_report.processing_summary
+    return summary.fuzzy_enabled if summary is not None else False
 
 
 def _request_context_or_fallback(
@@ -357,6 +381,14 @@ def _build_agentic_processing_summary(
         deterministic_candidates_total=len(analysis.candidates),
         deterministic_strong_candidates=analysis.strong_candidates_count,
         deterministic_weak_candidates=analysis.weak_candidates_count,
+        deterministic_fuzzy_candidates=sum(
+            candidate.match_type == MatchType.FUZZY for candidate in analysis.candidates
+        ),
+        fuzzy_enabled=(
+            analysis.base_report.processing_summary.fuzzy_enabled
+            if analysis.base_report.processing_summary is not None
+            else False
+        ),
         deterministic_confirmed_findings=analysis.confirmed_findings_count,
         deterministic_probable_findings=analysis.probable_findings_count,
         deterministic_uncertain_findings=analysis.uncertain_findings_count,
@@ -417,6 +449,7 @@ class AgentOrchestrator:
         context_profiles: list[ContextProfile] | None = None,
         max_review_candidates: int = 20,
         max_steps_per_candidate: int = 5,
+        enable_fuzzy: bool = False,
     ) -> CheckReport:
         return run_bounded_review_check(
             article,
@@ -424,4 +457,5 @@ class AgentOrchestrator:
             context_profiles=context_profiles,
             max_review_candidates=max_review_candidates,
             max_steps_per_candidate=max_steps_per_candidate,
+            enable_fuzzy=enable_fuzzy,
         )

@@ -148,6 +148,8 @@ def test_llm_requests_small_context_then_disambiguates_different_entity(
     assert report.processing_summary.mode == "agentic"
     assert report.processing_summary.agentic_reviewed_candidates == 1
     assert report.processing_summary.agentic_rejected_after_review == 1
+    assert "person-only fuzzy recall was not enabled" in " ".join(report.limitations)
+    assert "No person-only fuzzy recall" in " ".join(report.limitations)
     finding = report.findings[0]
     assert finding.status == FindingStatus.REJECTED
     assert finding.risk_level == RiskLevel.LOW

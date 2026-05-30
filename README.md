@@ -16,6 +16,7 @@ The system is designed for compliance assistance and human review. It does not p
 - exact, alias, and fuzzy matching
 - deterministic article-author check
 - deterministic full resource-link check
+- optional person-only fuzzy recall
 - bounded LLM-agent review through local Ollama
 - weak candidate disambiguation
 - label checking
@@ -93,6 +94,16 @@ deterministic.
 poetry run fa-checker "URL" --mode agentic
 poetry run fa-checker "URL" --mode agentic --context-profiles-path data/context/context_profiles.json
 poetry run fa-checker "URL" --registry-path data/samples/registries/minjust_export_sample.xlsx
+```
+
+Optional fuzzy recall is disabled by default. When enabled, it applies only to
+person registry entries and creates weak candidates that require disambiguation
+or human review. It intentionally does not run for organizations, media,
+projects, domains, or resource links.
+
+```bash
+poetry run fa-checker "URL" --mode deterministic --enable-fuzzy
+poetry run fa-checker "URL" --mode agentic --enable-fuzzy
 ```
 
 ## Context Profiles

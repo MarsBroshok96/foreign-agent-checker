@@ -123,6 +123,12 @@ URLs. These signals can affect the final report status, but they are not sent to
 the LLM review loop in the current MVP. Agentic review remains limited to weak
 text candidates.
 
+Fuzzy matching is also a deterministic recall pass, not an LLM tool. It is
+disabled by default and can be enabled explicitly for person entries only.
+Fuzzy candidates are always weak candidates that require disambiguation or human
+review. The MVP intentionally does not fuzzy-match organizations, projects,
+media, domains, or resource links.
+
 The runtime agent does not browse the internet.
 
 # Available tools

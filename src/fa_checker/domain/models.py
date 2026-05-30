@@ -136,6 +136,8 @@ class AuthorCheckResult(BaseModel):
 class FinalFinding(BaseModel):
     entity_name: str
     mention_text: str
+    match_type: MatchType | None = None
+    match_score: float | None = Field(default=None, ge=0.0, le=1.0)
     status: FindingStatus
     risk_level: RiskLevel
     confidence_level: ConfidenceLevel
@@ -151,6 +153,8 @@ class ProcessingSummary(BaseModel):
     deterministic_candidates_total: int = Field(default=0, ge=0)
     deterministic_strong_candidates: int = Field(default=0, ge=0)
     deterministic_weak_candidates: int = Field(default=0, ge=0)
+    deterministic_fuzzy_candidates: int = Field(default=0, ge=0)
+    fuzzy_enabled: bool = False
     deterministic_confirmed_findings: int = Field(default=0, ge=0)
     deterministic_probable_findings: int = Field(default=0, ge=0)
     deterministic_uncertain_findings: int = Field(default=0, ge=0)

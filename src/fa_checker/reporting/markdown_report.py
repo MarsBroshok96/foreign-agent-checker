@@ -36,6 +36,8 @@ class GroupedFinding:
     label_status: LabelStatus
     requires_human_review: bool
     rationale: str
+    match_type: object | None = None
+    match_score: float | None = None
     review_rationales: list[str] = field(default_factory=list)
     mention_texts: list[str] = field(default_factory=list)
     evidence_fragments: list[EvidenceFragment] = field(default_factory=list)
@@ -150,6 +152,8 @@ def _deterministic_summary_lines(summary: ProcessingSummary | None) -> list[str]
         f"- Кандидатов найдено deterministic layer: {summary.deterministic_candidates_total}",
         f"- Сильные совпадения: {summary.deterministic_strong_candidates}",
         f"- Слабые совпадения: {summary.deterministic_weak_candidates}",
+        f"- Fuzzy matching: {_fuzzy_status_text(summary.fuzzy_enabled)}",
+        f"- Fuzzy-кандидаты: {summary.deterministic_fuzzy_candidates}",
         f"- Совпадения по ссылкам: {summary.resource_link_matches_total}",
         f"- Статус проверки автора: {_author_check_status_text(summary.author_check_status)}",
         f"- Подтверждено: {summary.deterministic_confirmed_findings}",
@@ -262,6 +266,10 @@ def _finding_lines(index: int, finding: GroupedFinding, rejected: bool = False) 
         f"- Статус маркировки: {_label_status_text(finding.label_status)}",
         f"- Требуется ручная проверка: {_format_bool(finding.requires_human_review)}",
     ]
+    if finding.match_type is not None:
+        lines.append(f"- Тип совпадения: {_match_type_text(finding.match_type)}")
+    if finding.match_score is not None:
+        lines.append(f"- Score: {finding.match_score:.2f}")
     review_rationale = _combined_review_rationale(finding.review_rationales)
     if review_rationale:
         lines.append(f"- Обоснование agentic review: {review_rationale}")
@@ -286,6 +294,7 @@ def _group_findings(findings: list[FinalFinding]) -> list[GroupedFinding]:
             finding.label_status,
             finding.requires_human_review,
             finding.rationale,
+            finding.match_type,
         )
         if key not in groups:
             groups[key] = GroupedFinding(
@@ -296,6 +305,8 @@ def _group_findings(findings: list[FinalFinding]) -> list[GroupedFinding]:
                 label_status=finding.label_status,
                 requires_human_review=finding.requires_human_review,
                 rationale=finding.rationale,
+                match_type=finding.match_type,
+                match_score=finding.match_score,
             )
         group = groups[key]
         group.occurrences_count += 1
@@ -303,6 +314,11 @@ def _group_findings(findings: list[FinalFinding]) -> list[GroupedFinding]:
             group.mention_texts.append(finding.mention_text)
         if finding.review_rationale and finding.review_rationale not in group.review_rationales:
             group.review_rationales.append(finding.review_rationale)
+        if (
+            finding.match_score is not None
+            and (group.match_score is None or finding.match_score > group.match_score)
+        ):
+            group.match_score = finding.match_score
         _extend_evidence(group, finding.evidence)
     return list(groups.values())
 
@@ -376,6 +392,10 @@ def _format_bool(value: bool) -> str:
     return "да" if value else "нет"
 
 
+def _fuzzy_status_text(enabled: bool) -> str:
+    return "включён только для персон" if enabled else "выключен"
+
+
 def _mode_text(mode: str | None) -> str:
     if mode == "deterministic":
         return "детерминированный"
@@ -400,6 +420,12 @@ def _finding_status_text(status: FindingStatus) -> str:
         FindingStatus.REJECTED: "отклонён",
     }
     return status_text[status]
+
+
+def _match_type_text(match_type: object) -> str:
+    if hasattr(match_type, "value"):
+        return str(match_type.value)
+    return str(match_type)
 
 
 def _author_check_text(author_check) -> str:
