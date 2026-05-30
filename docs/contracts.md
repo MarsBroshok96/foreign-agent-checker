@@ -44,13 +44,19 @@ Important: context profiles are not a source of truth for foreign-agent status.
 class ContextProfile(BaseModel):
     registry_id: str | None
     entity_name: str
-    entity_type: str
-    known_descriptors: list[str]
+    entity_type: str | None
+    role_or_category: str | None
+    short_description: str | None
+    descriptors: list[str]
     known_projects: list[str]
     known_domains: list[str]
+    common_mentions: list[str]
+    disambiguation_hints: list[str]
+    negative_context_hints: list[str]
+    primary_language: str | None
+    confidence: str | None
     notes: str | None
     sources: list[str]
-    retrieved_at: datetime | None
 ```
 ## EvidenceFragment
 

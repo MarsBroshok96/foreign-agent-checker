@@ -3,6 +3,7 @@ from datetime import UTC, date, datetime
 import pytest
 from pydantic import ValidationError
 
+from fa_checker.agent.context_profiles import ContextProfile
 from fa_checker.domain.enums import (
     ConfidenceLevel,
     DisambiguationDecision,
@@ -19,7 +20,6 @@ from fa_checker.domain.models import (
     Article,
     CandidateMatch,
     CheckReport,
-    ContextProfile,
     DisambiguationResult,
     EvidenceFragment,
     FinalFinding,
@@ -52,12 +52,11 @@ def test_domain_models_can_be_instantiated() -> None:
         registry_id="123",
         entity_name="Example Entity",
         entity_type="organization",
-        known_descriptors=["publisher"],
+        descriptors=["publisher"],
         known_projects=["Example Project"],
         known_domains=["example.org"],
         notes="Auxiliary context only.",
         sources=["https://context.example"],
-        retrieved_at=datetime(2026, 5, 27, tzinfo=UTC),
     )
     evidence = EvidenceFragment(
         source=EvidenceSource.ARTICLE_TEXT,

@@ -57,19 +57,6 @@ class RegistryEntry(BaseModel):
             raise ValueError(msg)
         return value
 
-
-class ContextProfile(BaseModel):
-    registry_id: str | None = None
-    entity_name: str
-    entity_type: str
-    known_descriptors: list[str] = Field(default_factory=list)
-    known_projects: list[str] = Field(default_factory=list)
-    known_domains: list[str] = Field(default_factory=list)
-    notes: str | None = None
-    sources: list[str] = Field(default_factory=list)
-    retrieved_at: datetime | None = None
-
-
 class EvidenceFragment(BaseModel):
     source: EvidenceSource
     text: str
