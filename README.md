@@ -40,7 +40,12 @@ Deterministic mode is the default and does not call an LLM. It performs:
 - deterministic risk scoring and report generation.
 
 ```bash
-poetry run fa-checker "https://www.rambler.ru/..." --mode deterministic
+poetry run fa-checker "https://www.rambler.ru/..." --mode deterministic --enable-fuzzy
+```
+or equivalent Make target:
+
+```bash
+make run-deterministic-fuzzy URL=https://www.rambler.ru/...
 ```
 
 ### Agentic
@@ -56,7 +61,13 @@ context profiles are auxiliary only, the runtime agent does not browse the
 internet, and final scoring/reporting remain deterministic.
 
 ```bash
-poetry run fa-checker "https://www.rambler.ru/..." --mode agentic
+poetry run fa-checker "https://www.rambler.ru/..." --mode agentic --enable-fuzzy
+```
+
+or equivalent Make target:
+
+```bash
+make run-agentic-fuzzy URL=https://www.rambler.ru/...
 ```
 
 ## Quickstart
@@ -160,7 +171,7 @@ Equivalent Make targets include:
 ```bash
 make run-deterministic
 make run-agentic
-make run-json
+make run-agentic-json
 make run-deterministic-fuzzy
 make run-agentic-fuzzy
 ```
